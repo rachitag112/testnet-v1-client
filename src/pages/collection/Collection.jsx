@@ -26,7 +26,6 @@ export default function Collection() {
   const collData = data.find((obj) => {
     return obj.address === collAddress
   })
-  console.log('colldata', collData)
 
   return (
     <div className='text-white mt-20'>
@@ -70,11 +69,12 @@ export default function Collection() {
         <div className='grid grid-cols-4 m-2 text-white'>
           {nftDataArr.map((nft) => {
             return (
-              <Link
+              <div className='w-56 h-80 mx-auto'>
+                <Link
                 to={`/collection/${nft.contractAddress}/${nft.tokenId}`}
                 state={{ data: nft }}
               >
-                <div className='flex flex-col m-2 mt-8 w-56 h-80 border-2 border-indigo-300'>
+                <div className='flex flex-col m-2 mt-8 border-2 border-indigo-300'>
                   {console.log(
                     `nft image is : https://ipfs.io/ipfs/${
                       nft.metadata.imageURI.split('//')[1]
@@ -96,7 +96,7 @@ export default function Collection() {
                       <div className='w-24 text-sm'>
                         Price
                         <br />
-                        {nft.price} SHM
+                        {nft.price} ETH
                       </div>
                       <div className='ml-2 w-30 text-sm text-center'>
                         DownPayment
@@ -107,6 +107,7 @@ export default function Collection() {
                   </div>
                 </div>
               </Link>
+              </div>
             )
           })}
         </div>

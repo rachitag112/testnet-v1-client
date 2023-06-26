@@ -1,257 +1,102 @@
-import { React, useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './item.css'
-import { useLocation } from "react-router";
-// import { NftMarketplace_address, abi_marketplace } from "./../../constants";
-// import { ethers } from "ethers";
-import { useParams } from 'react-router'
 import axios from 'axios'
+import LinedChart from '../../components/lineChart/LinedChart'
+
+import { useParams } from 'react-router'
+import {
+  BNPL_CONTRACT_ADDRESS,
+  BNPL_ABI,
+  CHAIN_ID,
+} from '../../assets/constants'
+import { ethers } from 'ethers'
 import { Link } from 'react-router-dom'
 
-const ProfileItem = () => {
-  //   const location = useLocation();
-  //   const nft = location.state?.data;
-  //console.log(nft);
+const Item = () => {
+  const [nftData, setNftData] = useState([])
+  const { tokenAddress, tokenId } = useParams()
 
-  //   const [loanRepaid, setLoanRepaid] = useState();
-  //   const [nftClaimed, setNftClaimed] = useState();
-  //   const [timeRemaining, setTimeRemaining] = useState();
+  useEffect(() => {
+    axios(
+      `https://gearfi-testnet.onrender.com/assets/${tokenAddress}/${tokenId}`
+    ).then(({ data }) => {
+      console.log('datacollection type', data[0].owner)
+      setNftData(data[0])
+    })
+  }, [tokenAddress, tokenId])
 
-  //   useEffect(() => {
-  //     isLoanRepaid().then((res) => setLoanRepaid(res));
-  //     isNFTClaimed().then((res) => setNftClaimed(res));
-  //     getTimeRemaining().then((res) => setTimeRemaining(res));
-  //   }, [loanRepaid, nftClaimed]);
-  const location = useLocation();
-  const nft = location.state?.data;
+  async function bnplInitialize() {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' })
 
-    console.log('nfts is', nft)
+    if (accounts.length === 0) {
+      alert('Please connect Wallet')
+      return
+    }
+    // console.log("chainId: ", chainId)
+    // if (chainId !== 0x539) {
+    //   alert("Please switch to Ganache");
 
+    //   return;
+    // }
 
-  //   async function getTimeRemaining() {
-  //     if (window.ethereum) {
-  //       const provider = new ethers.providers.Web3Provider(window.ethereum);
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const signer = provider.getSigner()
+      const contract = new ethers.Contract(
+        BNPL_CONTRACT_ADDRESS,
+        BNPL_ABI,
+        signer
+      )
 
-  //       const signer = provider.getSigner();
+      //const price = nftData.price
+      const response = await contract.BNPLInitiate(tokenAddress, tokenId, {
+          value: ethers.utils.parseEther('0.3')
+        }).then(() => {
+          axios.patch('https://gearfi-testnet.onrender.com/state', {
+            state: 'BNPL_LOAN_ACTIVE',
+            owner: signer.getAddress(),
+            tokenId: tokenId,
+            nftAddress: tokenAddress,
+          })
+        });
 
-  //       const marketplaceContract = new ethers.Contract(
-  //         NftMarketplace_address,
-  //         abi_marketplace,
-  //         signer
-  //       );
+      console.log(response)
+    } else alert('Sorry no wallet found')
+  }
 
-  //       const response = await marketplaceContract.getTimeRemaining(
-  //         nft.token_address._value,
-  //         nft.token_id
-  //       );
-
-  //       console.log(response.toString() / 86400);
-  //       return response.toString() / 86400;
-  //     } else alert("Sorry no wallet found");
-  //   }
-
-  //   async function repay() {
-  //     const accounts = await window.ethereum.request({ method: "eth_accounts" });
-  //     const chainId = await window.ethereum.request({ method: "eth_chainId" });
-
-  //     if (accounts.length === 0) {
-  //       alert("Please connect Wallet");
-  //       return;
-  //     }
-
-  //     if (chainId !== "0x5") {
-  //       alert("Please switch to Goerli Testnet");
-  //       return;
-  //     }
-
-  //     if (window.ethereum) {
-  //       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-  //       const signer = provider.getSigner();
-
-  //       const marketplaceContract = new ethers.Contract(
-  //         NftMarketplace_address,
-  //         abi_marketplace,
-  //         signer
-  //       );
-
-  //       const response = await marketplaceContract.repayLoan(
-  //         nft.token_address._value,
-  //         nft.token_id,
-  //         {
-  //           value: ethers.utils.parseEther("0.007"),
-  //         }
-  //       );
-
-  //       console.log(response);
-  //     } else alert("Sorry no wallet found");
-  //   }
-
-  //   async function isLoanRepaid() {
-  //     if (window.ethereum) {
-  //       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-  //       const signer = provider.getSigner();
-
-  //       const marketplaceContract = new ethers.Contract(
-  //         NftMarketplace_address,
-  //         abi_marketplace,
-  //         signer
-  //       );
-
-  //       const response = await marketplaceContract.getLoanData(
-  //         nft.token_address._value,
-  //         nft.token_id
-  //       );
-
-  //       if (response.state === 2) {
-  //         console.log("Loan state (Repaid)", response.state);
-  //         return true;
-  //       } else return false;
-  //     } else alert("Sorry no wallet found");
-  //   }
-
-  //   async function claimNFT() {
-  //     if (window.ethereum) {
-  //       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-  //       const signer = provider.getSigner();
-
-  //       const marketplaceContract = new ethers.Contract(
-  //         NftMarketplace_address,
-  //         abi_marketplace,
-  //         signer
-  //       );
-
-  //       const response = await marketplaceContract
-  //         .claimNFTbyBuyer(nft.token_address._value, nft.token_id)
-  //         .then(() => {
-  //           console.log(response);
-  //         });
-  //     } else alert("Sorry no wallet found");
-  //   }
-
-  //   async function isNFTClaimed() {
-  //     if (window.ethereum) {
-  //       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-  //       const signer = provider.getSigner();
-
-  //       const marketplaceContract = new ethers.Contract(
-  //         NftMarketplace_address,
-  //         abi_marketplace,
-  //         signer
-  //       );
-
-  //       const response = await marketplaceContract.getLoanData(
-  //         nft.token_address._value,
-  //         nft.token_id
-  //       );
-
-  //       if (response.state === 3) {
-  //         console.log("Loan state (claimed)", response.state);
-  //         return true;
-  //       } else return false;
-  //     } else alert("Sorry no wallet found");
-  //   }
-
-  //   return (
-  // //     <div className="item section__padding">
-  // //       <div className="item-image">
-  // //         <img
-  // //           src={nft.metadata?.image.replace(
-  // //             "ipfs://",
-  // //             "https://ipfs.moralis.io:2053/ipfs/"
-  // //           )}
-  // //           alt=""
-  // //         />
-  // //       </div>
-  // //       <div className="item-content">
-  // //         <div className="item-content-title">
-  // //           <h1>
-  // //             {nft.metadata?.name} #{nft.token_id}
-  // //           </h1>
-  // //         </div>
-  // //         <div>
-  // //           <div className="item-content-detail">
-  // //             <p>{nft.metadata?.description}</p>
-  // //           </div>
-
-  // //           {nftClaimed ? (
-  // //             <div className="item-content-detail">
-  // //               {/* <p>Owner: {user?.attributes.ethAddress}</p> */}
-  // //               <p>
-  // //                 <span>
-  // //                   {" "}
-  // //                   Checkout your NFT on{" "}
-  // //                   <a href="https://testnets.opensea.io/">
-  // //                     https://testnets.opensea.io
-  // //                   </a>{" "}
-  // //                   (Goerli){" "}
-  // //                 </span>
-  // //               </p>
-  // //             </div>
-  // //           ) : (
-  // //             <div>
-  // //               <div className="item-content-detail">
-  // //                 <p>Owner: 0xB9e53abF5b0bAE6353076467F0505DebA8A98efa</p>
-  // //               </div>
-
-  // //               <div className="item-content-buy">
-  // //                 {loanRepaid ? (
-  // //                   <button className="primary-btn" onClick={() => claimNFT()}>
-  // //                     Claim NFT
-  // //                   </button>
-  // //                 ) : (
-  // //                   <div className="item-content-detail">
-  // //                     <p>Time Remaining : {timeRemaining} Days</p>
-  // //                     <p>
-  // //                       <span>
-  // //                         *Note: Failure to pay full amount in the remaining time
-  // //                         will result in default of the sale, which means you
-  // //                         won't be able to claim your NFT.
-  // //                       </span>
-  // //                     </p>
-  // //                     <button className="primary-btn" onClick={() => repay()}>
-  // //                       Pay 0.007 ETH
-  // //                     </button>
-  // //                   </div>
-  // //                 )}
-  // //               </div>
-  // //             </div>
-  // //           )}
-  // //         </div>
-  // //       </div>
-  // //     </div>
-  // //   );
   return (
-    <div className='item flex px-6 text-white h-screen '>
-      <div className='item-image flex flex-col justify-center items-center border-r border-gray-200'>
+    <div className='item flex px-6 text-white mt-20 h-screen'>
+      <div className='item-image flex flex-col mt-40 border-r border-gray-200'>
         <img
           src={`https://ipfs.io/ipfs/${
-            nft.metadata?.imageURI.split('//')[1]
+            nftData.metadata?.imageURI.split('//')[1]
           }`}
           alt=''
           className='rounded-15'
         />
       </div>
-      <div className='item-content flex-1 flex justify-start items-start flex-col m-5 relative'>
-        <div className='item-content-title'>
-          <h1 className='font-bold text-28 mt-20'>
-            {nft.metadata?.name} #{nft?.tokenId}
+      <div className='item-content flex justify-start items-center flex-col m-5 relative'>
+        <div className='mx-auto item-content-title'>
+          <h1 className='font-bold text-28 '>
+            {nftData.metadata?.name} #{nftData?.tokenId}
           </h1>
         </div>
         <div className=' flex-col mt-4 w-full px-8'>
           <div className='p-4 border border-white border-b-0 py-8'>
             Description:{' '}
             <span className='font-semibold'>
-              {nft.metadata?.description}
+              {nftData.metadata?.description}
             </span>
+          </div>
+          <div className='p-4 border border-white border-b-0 py-8'>
+            Owner: <span className='font-semibold'>{nftData.owner}</span>
           </div>
           <div className='p-4 border border-white text-white'>
             <div className='flex justify-around my-4'>
               <div className='flex flex-col items-center'>
                 <div>Price</div>
-                <div className='text-5xl font-bold'>{nft.price}</div>
+                <div className='text-5xl font-bold'>{nftData.price} ETH</div>
               </div>
               <div className='flex flex-col items-center'>
                 <div>Downpayment</div>
@@ -260,45 +105,51 @@ const ProfileItem = () => {
             </div>
           </div>
         </div>
-
-        {/* <div className='item-content-buy mb-4'>
-          {sale ? (
+        <div className='mx-auto my-8 item-content-buy mb-4'>
+          {nftData.state === 'LISTED' ? (
+            <div>
+              <div className='relative inline-block'>
+                <button className='primary-btn mb-0' onClick={bnplInitialize}>
+                  {' '}
+                  Buy Now Pay Later
+                </button>
+              </div>
+              <button className='primary-btn'>Make Offer</button>
+            </div>
+          ) : (
             <Link
-            // to={`/profile/${user.id}`}
+              to={`/user/${window.ethereum.selectedAddress}`}
+              state={{ data: window.ethereum.selectedAddress }}
             >
               <button className='primary-btn'>Checkout Sale</button>
             </Link>
-          ) : (
-            <div>
-              <div className='relative inline-block'>
-                <button className='primary-btn mb-0'>
-                  Buy Now For 0.003 ETH
-                </button>
-              </div>
-              <button className='primary-btn'>Make Offer</button>
-            </div>
-          )}
-        </div> */}
-        <div className='item-content-buy mb-4'>
-          {nft.state === 'listed' ? (
-            <div>
-              <button className='primary-btn'>Repay Loan</button>
-              <button className='primary-btn'>Claim NFT</button>
-            </div>
-          ) : (
-            <div>
-              <div className='relative inline-block'>
-                <button className='primary-btn mb-0'>
-                  Buy Now For 0.003 ETH
-                </button>
-              </div>
-              <button className='primary-btn'>Make Offer</button>
-            </div>
           )}
         </div>
+        {/* <LinedChart /> */}
+        {/* <div className='m-4 mt-8 border border-white'>
+          Offers:
+          <table className='w-full border border-white'>
+            <thead>
+              <tr>
+                <th className='p-4'>SUPPLY</th>
+                <th className='p-4'>SUPPLY</th>
+                <th className='p-4'>SUPPLY</th>
+                <th className='p-4'>SUPPLY</th>
+                <th className='p-4'>SUPPLY</th>
+              </tr>
+            </thead>
+            <tbody>
+                <th className='font-semibold'>0.05ETH</th>
+                <th className='font-semibold'>0.05ETH</th>
+                <th className='font-semibold'>0.05ETH</th>
+                <th className='font-semibold'>0.05ETH</th>
+                <th className='font-semibold'>0.05ETH</th>
+            </tbody>
+          </table>
+        </div> */}
       </div>
     </div>
   )
 }
 
-export default ProfileItem
+export default Item
