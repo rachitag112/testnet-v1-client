@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 // import { useLocation } from "react-router";
 import './profile.css'
 import axios from 'axios'
-import userProfile from '../../assets/userProfile.jpg'
+import userProfile from '../../assets/profile.jpeg'
 // import Web3 from 'web3'
 import { useParams } from 'react-router'
 
@@ -16,14 +16,14 @@ const Profile = () => {
   const [listings, setListings] = React.useState(true)
   const [nftData, setNftData] = useState([])
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(`http://localhost:8000/assets?owner=${userAddress}`)
-  axios(`http://localhost:8000/assets?owner=${userAddress.toLowerCase()}`).then(
-    ({ data }) => {
-      console.log('krishna!!')
-      setNftData(data)
-    }
-  )
+    axios(`http://localhost:8000/assets?owner=${userAddress}`).then(
+      ({ data }) => {
+        console.log('krishna!!')
+        setNftData(data)
+      }
+    )
   }, [])
 
   console.log('datacollection ', nftData)
@@ -31,8 +31,9 @@ const Profile = () => {
     <div className='text-white mt-20'>
       <div className='flex flex-col items-center'>
         <img src={userProfile} alt='' className='w-24 mt-8 rounded-full' />
-        <div className=' text-4xl font-bold mb-2'>Shane Helm</div>
-        <div className=''>Joined 11/11/12 address: 2e4c...a7df</div>
+        <div className=' text-4xl font-bold mb-2'>
+          {userAddress.slice(0, 4)}...{userAddress.slice(-4)}
+        </div>
       </div>
       <div className='flex justify-start'>
         <div
@@ -41,7 +42,7 @@ const Profile = () => {
           }`}
           onClick={() => setListings(true)}
         >
-          My Listings
+          Listings
         </div>
         <div
           className={`cursor-pointer m-4 mr-8 text-3xl font-semibold ${
@@ -49,7 +50,7 @@ const Profile = () => {
           }`}
           onClick={() => setListings(false)}
         >
-          NFTs
+          My NFTs
         </div>
       </div>
       {listings && (

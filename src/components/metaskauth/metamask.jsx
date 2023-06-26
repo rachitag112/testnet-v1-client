@@ -41,7 +41,7 @@ const MetaMaskAuthButton = () => {
         //console.log('ethereum address', address)
 
         // Generate a random message to sign
-        const message = 'This is a sample message.'
+        const message = 'I want to login on to GearFi Testnet App.'
         // Request user's permission to sign the message
         const signedMessage = await window.ethereum.request({
           method: 'personal_sign',
