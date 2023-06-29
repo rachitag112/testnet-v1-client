@@ -84,9 +84,8 @@ const Profile = () => {
                   </div>
                 </Link>
               )
-              else return(
-                <div> No NFTs Found</div>
-              )
+             
+              
           })}
         </div>
       )}

@@ -135,6 +135,40 @@ height: 10vh;
   border-radius: 5px;
   padding: 5px 5px 0px 5px;
 }
+
+/* EventsDetails css */
+
+#event_popup{
+	position: fixed;
+	top: 100vh;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: #000000b8;
+	z-index: 100;
+	transition: 0.25s ease-in;
+}
+#event_popup.active{
+	top: 0;
+}
+#event_popup_detail{
+	width: 30vw;
+	max-width: 90%;
+	height: 40vh;
+	margin: 20vh auto 0;
+	background-color: #000000b8;
+	border-radius: 10px;
+	overflow-y: scroll;
+}
+#event_popup_detail::-webkit-scrollbar{
+	display: none;
+	width: 0;
+}
+#event_popup_detail img{
+	object-fit: cover;
+}
+
+
 @media screen and (max-width: 1050px) {
   .item{
     flex-direction: column;

@@ -50,7 +50,7 @@ export default function EarlyAccess() {
                 onChange={handleInputChange}
               />
               <button
-                className='text-[#0ea5e9] bg-gray-800 px-3 text-lg font-medium text-center  hover:bg-[#0ea5e9] hover:text-gray-800'
+                className='text-[#0ea5e9] bg-gray-800 border-2 border-gray-900 px-3 text-lg font-medium text-center  hover:bg-[#0ea5e9] hover:text-gray-800'
                 onClick={sendEmail}
               >
                 Submit

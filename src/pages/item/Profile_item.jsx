@@ -1,73 +1,45 @@
 import React, { useState, useEffect } from 'react'
 import './item.css'
 import axios from 'axios'
-import LinedChart from '../../components/lineChart/LinedChart'
 
 import { useParams } from 'react-router'
-import {
-  BNPL_ABI,
-  CHAIN_ID,
-} from '../../assets/constants'
+import { BNPL_CONTRACT_ADDRESS, BNPL_ABI } from '../../assets/constants'
 import { ethers } from 'ethers'
-import { Link } from 'react-router-dom'
+// import { Link } from 'react-router-dom'
+// import LinedChart from '../../components/lineChart/LinedChart'
 
 const Item = () => {
   const [nftData, setNftData] = useState([])
   const { tokenAddress, tokenId } = useParams()
+  const [open, setOpen] = useState(false)
+  const [popup, setPopup] = useState('')
+
+  // const handleOpen = () => setOpen(!open)
+  const handleClick = (e, data) => {
+    document.querySelector('#event_popup').classList.add('active')
+    setPopup(data)
+  }
+  function closePopup(e) {
+    console.log('closePopup')
+    if (!e.target.matches('#event_popup_detail')) {
+      e.target.classList.remove('active')
+    }
+  }
 
   useEffect(() => {
     axios(
       `${process.env.REACT_APP_SERVER_URL}/assets/${tokenAddress}/${tokenId}`
     ).then(({ data }) => {
-      console.log('datacollection type', data[0].owner)
+      // console.log('datacollection type', data[0].owner)
       setNftData(data[0])
     })
   }, [tokenAddress, tokenId])
 
-  async function bnplInitialize() {
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' })
-
-    if (accounts.length === 0) {
-      alert('Please connect Wallet')
-      return
-    }
-    // console.log("chainId: ", chainId)
-    // if (chainId !== 0x539) {
-    //   alert("Please switch to Ganache");
-
-    //   return;
-    // }
-
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const signer = provider.getSigner()
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      )
-
-      //const price = nftData.price
-      const response = await contract.BNPLInitiate(tokenAddress, tokenId, {
-          value: ethers.utils.parseEther('0.3')
-        }).then(() => {
-          axios.patch('https://gearfi-testnet.onrender.com/state', {
-            state: 'BNPL_LOAN_ACTIVE',
-            owner: signer.getAddress(),
-            tokenId: tokenId,
-            nftAddress: tokenAddress,
-          })
-        });
-
-      console.log(response)
-    } else alert('Sorry no wallet found')
-  }
+  
 
   return (
     <div className='item flex px-6 text-white mt-20'>
       <div className='item-image flex flex-col mt-32 border-r border-gray-200'>
-     
         <img
           src={`https://ipfs.io/ipfs/${
             nftData.metadata?.imageURI.split('//')[1]
@@ -75,14 +47,13 @@ const Item = () => {
           alt=''
           className='rounded-15 w-80 mb-5'
         />
-          <div className='mx-auto item-content-title'>
-        <h1 className='font-bold text-28 '>
+        <div className='mx-auto item-content-title'>
+          <h1 className='font-bold text-28 '>
             {nftData.metadata?.name} #{nftData?.tokenId}
           </h1>
         </div>
       </div>
       <div className='item-content flex justify-start items-center flex-col  relative'>
-       
         <div className=' flex-col mt-4 w-full px-8'>
           <div className='p-4 border border-white border-b-0 py-8'>
             Description:{' '}
@@ -109,21 +80,25 @@ const Item = () => {
         <div className='mx-auto my-8 item-content-buy'>
           {nftData.state === 'LISTED' ? (
             <div>
-              <div className='relative inline-block'>
-                <button className='primary-btn mb-0' onClick={bnplInitialize}>
-                  {' '}
-                  Repay Loan
-                </button>
-              </div>
-              <button className='primary-btn'>List for Margin Sale</button>
+              <button className='primary-btn'>Cancel Listing</button>
             </div>
           ) : (
-            <Link
-              to={`/user/${window.ethereum.selectedAddress}`}
-              state={{ data: window.ethereum.selectedAddress }}
-            >
-              <button className='primary-btn'>Checkout Sale</button>
-            </Link>
+            <div className='flex'>
+              <div
+                onClick={(e) => {
+                  handleClick(e, 'Repay')
+                }}
+              >
+                <button className='primary-btn'>Repay Loan</button>
+              </div>
+              <div
+                onClick={(e) => {
+                  handleClick(e, 'Margin_Trade')
+                }}
+              >
+                <button className='primary-btn'>List for Margin Sale</button>
+              </div>
+            </div>
           )}
         </div>
         {/* <LinedChart /> */}
@@ -148,6 +123,26 @@ const Item = () => {
             </tbody>
           </table>
         </div> */}
+      </div>
+      <div id='event_popup' onClick={closePopup}>
+        <div
+          id='event_popup_detail'
+          className='text-white border-2 shadow-lg shadow-cyan-500/50 border-sky-500/70 rounded-md'
+        >
+          {popup === 'Repay' && (
+            <div className='h-full flex flex-col justify-center items-center'>
+              <input type='text' />
+              <button>Repay</button>
+            </div>
+          )}
+          {popup === 'Margin_Trade' && (
+            <div className='h-full flex flex-col justify-center items-center'>
+              <div>Put your NFT's for margin sale</div>
+              <input type="text" />
+              <button>Sale</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
