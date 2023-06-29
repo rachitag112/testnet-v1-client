@@ -34,7 +34,7 @@ export default function Banner2() {
           <div
             className='flex m-4 h-72 card items-end cursor-pointer'
             style={{ backgroundImage: `url(${collImg})` }}
-            onClick={() => handleRedirect('764258701')}
+            onClick={() => handleRedirect('0x02d074f26290ddc1551905fcca4f9cdb53578572')}
           >
             <div className='flex flex-col m-4 blue-glassmorphism p-4'>
               <div className='font-bold mb-2 flex items-center justify-between'>

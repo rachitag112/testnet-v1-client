@@ -11,7 +11,7 @@ export default function Collection() {
   const [nftData, setNftData] = useState([])
 
   useEffect(() => {
-    axios(`https://gearfi-testnet.onrender.com/assets/${collAddress}`).then(
+    axios(`${process.env.REACT_APP_SERVER_URL}/assets/${collAddress}`).then(
       ({ data }) => {
         console.log('datacollection type', data)
         setNftData(data)
@@ -28,7 +28,7 @@ export default function Collection() {
   })
 
   return (
-    <div className='text-white mt-20'>
+    <div className='text-white mt-20 h-full'>
       <div className='relative'>
         <img
           src={collData.banner_img}
@@ -69,12 +69,12 @@ export default function Collection() {
         <div className='grid grid-cols-4 m-2 text-white'>
           {nftDataArr.map((nft) => {
             return (
-              <div className='w-56 h-80 mx-auto'>
+              <div className='w-56 h-84 mx-auto'>
                 <Link
                 to={`/collection/${nft.contractAddress}/${nft.tokenId}`}
                 state={{ data: nft }}
               >
-                <div className='flex flex-col m-2 mt-8 border-2 border-indigo-300'>
+                <div className='flex flex-col m-2 mt-8 border-2 border-red-200 rounded-lg'>
                   {console.log(
                     `nft image is : https://ipfs.io/ipfs/${
                       nft.metadata.imageURI.split('//')[1]
@@ -89,7 +89,7 @@ export default function Collection() {
                   />
                   <div className='flex flex-col mt-0 p-4'>
                     <div className='font-bold mb-2 flex items-center justify-between'>
-                      <div>{nft.metadata.name}</div>
+                      <div>{nft.metadata.name} #{nft.tokenId}</div>
                       
                     </div>
                     <div className='flex'>
