@@ -50,7 +50,7 @@ const Item = () => {
     
       const price = nftData.price * 30/100
       
-      const response = await contract.BNPLInitiate(tokenAddress, tokenId, {
+      const response = await contract.bnplInitiate(tokenAddress, tokenId, {
         value: ethers.utils.parseEther(price.toString())
         }).then(() => {
      
