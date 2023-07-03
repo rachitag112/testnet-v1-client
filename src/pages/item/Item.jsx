@@ -4,9 +4,7 @@ import axios from 'axios'
 import LinedChart from '../../components/lineChart/LinedChart'
 import { useParams } from 'react-router'
 import {
-  BNPL_CONTRACT_ADDRESS,
   BNPL_ABI,
-  CHAIN_ID,
 } from '../../assets/constants'
 import { ethers } from 'ethers'
 import { Link } from 'react-router-dom'
@@ -28,6 +26,7 @@ const Item = () => {
     })
   }, [tokenAddress, tokenId])
 
+
   async function bnplInitialize() {
     const accounts = await window.ethereum.request({ method: 'eth_accounts' })
     const chainId = await window.ethereum.request({ method: 'eth_chainId' })
@@ -47,7 +46,7 @@ const Item = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const owner = await signer.getAddress()
-      const contract = new ethers.Contract(BNPL_CONTRACT_ADDRESS, BNPL_ABI, signer);
+      const contract = new ethers.Contract(process.env.REACT_APP_BNPL_CONTRACT_ADDRESS, BNPL_ABI, signer);
     
       const price = nftData.price * 30/100
       
@@ -55,8 +54,8 @@ const Item = () => {
         value: ethers.utils.parseEther(price.toString())
         }).then(() => {
      
-      console.log(owner)
-          axios.patch('https://gearfi-testnet.onrender.com/state', {
+
+          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
             state: 'BNPL_LOAN_ACTIVE',
             owner: owner,
             tokenId: tokenId,
@@ -70,15 +69,58 @@ const Item = () => {
    else alert('Sorry no wallet found')
   }
 
+  async function marginSale() {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+
+    if (accounts.length === 0) {
+      alert('Please connect Wallet')
+      return
+    }
+    console.log("chainId: ", chainId)
+    if (chainId !== "0x1f91") {
+      alert("Please switch to Shardeum Testnet");
+
+      return;
+    }
+
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const owner = await signer.getAddress()
+      const contract = new ethers.Contract(process.env.REACT_APP_BNPL_CONTRACT_ADDRESS, BNPL_ABI, signer);
+    
+      const price = nftData.price * 30/100
+      
+      const response = await contract.marginSale(tokenAddress, tokenId, {
+        value: ethers.utils.parseEther(price.toString())
+        }).then(() => {
+     
+     
+          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+            state: 'BNPL_LOAN_ACTIVE',
+            owner: owner,
+            tokenId: tokenId,
+            contractAddress: tokenAddress
+          })
+          setState("BNPL_LOAN_ACTIVE")
+        });
+
+      console.log(response)
+   } 
+   else alert('Sorry no wallet found')
+  }
+
+  
   return (
-    <div className='item flex px-6 text-white h-full'>
+    <div className='item flex px-6 text-white h-full justify-center items-center'>
       <div className='item-image flex flex-col mt-40 border-r border-gray-200'>
         <img
           src={`https://ipfs.io/ipfs/${
             nftData.metadata?.imageURI.split('//')[1]
           }`}
           alt=''
-          className='rounded-15 w-80'
+          className='rounded-15 w-80 max-h-80'
         />
         <div className='mx-auto item-content-title'>
           <h1 className='font-bold text-28 '>
@@ -112,10 +154,13 @@ const Item = () => {
           </div>
         </div>
         <div className='mx-auto my-8 item-content-buy mb-4'>
-          {state === 'LISTED' ? (
+          {state === 'LISTED' || 'MARGIN_LISTED' ? (
             <div>
               <div className='relative inline-block'>
-                <button className='primary-btn mb-0' onClick={bnplInitialize}>
+                <button className='primary-btn mb-0' onClick={()=>{
+                  nftData.state === 'LISTED' && bnplInitialize()
+                  nftData.state === 'MARGIN_LISTED' && marginSale()
+                }}>
                   {' '}
                   Buy Now Pay Later
                 </button>
