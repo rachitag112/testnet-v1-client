@@ -57,7 +57,7 @@ const Profile = () => {
       {!listings && (
         <div className="grid grid-cols-5 m-2">
           {nftData?.map((nft) => {
-            if (nft.state === "BNPL_LOAN_ACTIVE")
+            if (!(nft.state === "LISTED" || nft.state ==="MARGIN_LISTED"))
               return (
                 <Link
                   to={`/account/${nft.contractAddress}/${nft.tokenId}`}
@@ -134,16 +134,15 @@ const Profile = () => {
         </div>
       )}
       {!nftData && (
-         
-           <div className="flex-row justify-center h-screen">
-            <div className="animate-spin rounded-full h-24 w-24 border-b-4 border-red-700 py-3"></div>
-              <div className="text-center text-xl">Loading....</div>
-              <div className="text-center text-lg">
+            <div className='flex flex-col items-center h-screen w-screen'>
+              <div className='animate-spin rounded-full h-24 w-24 border-b-4 border-red-700 py-3'></div>
+              <div className='text-center text-xl'>Loading....</div>
+              <div className='text-center text-lg'>
                 Server is overloaded. It may take a while to fetch NFTs, please
                 wait.
               </div>
             </div>
-      )}
+          )}
     </div>
   );
 };

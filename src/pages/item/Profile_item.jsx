@@ -49,7 +49,7 @@ const Item = () => {
       setDueAmount(res);
       console.log("due amount: ", dueAmount);
     });
-  }, []);
+  }, [dueAmount]);
 
   async function switchChain() {
     try {
@@ -184,16 +184,38 @@ const Item = () => {
       }
 
       if (nftData.state === "MARGIN_LISTED") {
-        //await contract.cancelMarginListing(tokenAddress, tokenId).then(() => {
-        //   axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-        //     state: "LISTED_CANCELLED",
-        //     price: 0,
-        //     owner: owner,
-        //     tokenId: tokenId,
-        //     contractAddress: tokenAddress
-        //   });
-        // });
+        await contract.cancelMarginListing(tokenAddress, tokenId).then(() => {
+          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+            state: "LISTED_CANCELLED",
+            price: 0,
+            owner: owner,
+            tokenId: tokenId,
+            contractAddress: tokenAddress,
+          });
+        });
       }
+    }
+  }
+  async function claimNFT() {
+    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+      const signer = provider.getSigner();
+      const owner = await signer.getAddress();
+      const contract = new ethers.Contract(
+        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+        BNPL_ABI,
+        signer
+      );
+
+        await contract.claimNFTbyBuyer(tokenAddress, tokenId).then(() => {
+          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+            state: "CLAIMED",
+            price: 0,
+            owner: owner,
+            tokenId: tokenId,
+            contractAddress: tokenAddress,
+          });
+        });
+      
     }
   }
 
@@ -296,8 +318,12 @@ const Item = () => {
                       </button>
                     </div>
                   );
-                } else if (nftData.state === "CLAIMED") {
-                  return <button className="primary-btn">MARGIN_LISTED</button>;
+                } else if (nftData.state === "LOAN_REPAID") {
+                  return (
+                    <button className="primary-btn" onClick={claimNFT()}>
+                      Claim NFT
+                    </button>
+                  );
                 }
               })()}
             </div>

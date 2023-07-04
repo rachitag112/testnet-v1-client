@@ -11,17 +11,15 @@ import { Link } from 'react-router-dom'
 
 const Item = () => {
   const [nftData, setNftData] = useState([])
-  const [state, setState] = useState('')
+  
   const { tokenAddress, tokenId } = useParams()
 
   useEffect(() => {
     axios(
       `${process.env.REACT_APP_SERVER_URL}/assets/${tokenAddress}/${tokenId}`
     ).then(({ data }) => {
-      // console.log('datacollection type', data[0].owner)
+       console.log('datacollection', data[0])
       setNftData(data[0])
-      
-      setState(data[0].state)
       
     })
   }, [tokenAddress, tokenId])
@@ -50,7 +48,7 @@ const Item = () => {
     
       const price = nftData.price * 30/100
       
-      const response = await contract.BNPLInitiate(tokenAddress, tokenId, {
+      const response = await contract.bnplInitiate(tokenAddress, tokenId, {
         value: ethers.utils.parseEther(price.toString())
         }).then(() => {
      
@@ -61,7 +59,6 @@ const Item = () => {
             tokenId: tokenId,
             contractAddress: tokenAddress
           })
-          setState("BNPL_LOAN_ACTIVE")
         });
 
       console.log(response)
@@ -103,7 +100,7 @@ const Item = () => {
             tokenId: tokenId,
             contractAddress: tokenAddress
           })
-          setState("BNPL_LOAN_ACTIVE")
+         
         });
 
       console.log(response)
@@ -154,7 +151,7 @@ const Item = () => {
           </div>
         </div>
         <div className='mx-auto my-8 item-content-buy mb-4'>
-          {state === 'LISTED' || 'MARGIN_LISTED' ? (
+          {(nftData.state === 'LISTED' || nftData.state ==='MARGIN_LISTED') && (
             <div>
               <div className='relative inline-block'>
                 <button className='primary-btn mb-0' onClick={()=>{
@@ -167,7 +164,9 @@ const Item = () => {
               </div>
               {/* <button className='primary-btn'>Make Offer</button> */}
             </div>
-          ) : (
+          ) } 
+          
+          { (nftData.state === "BNPL_LOAN_ACTIVE") && (
             <Link
               to={`/user/${window.ethereum.selectedAddress}`}
               state={{ data: window.ethereum.selectedAddress }}
