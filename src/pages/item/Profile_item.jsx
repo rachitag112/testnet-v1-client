@@ -45,11 +45,10 @@ const Item = () => {
   }, [chainId]);
 
   useEffect(async () => {
-    getDueAmount().then((res) => {
-      setDueAmount(res);
+    getDueAmount().then(() => {
       console.log("due amount: ", dueAmount);
     });
-  }, [dueAmount]);
+  }, []);
 
   async function switchChain() {
     try {
@@ -103,7 +102,7 @@ const Item = () => {
         });
       }
 
-      return dueAmount;
+      setDueAmount(dueAmount)
     }
   }
 
