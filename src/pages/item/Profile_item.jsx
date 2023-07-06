@@ -10,9 +10,10 @@ const Item = () => {
   const [nftData, setNftData] = useState([]);
   const { tokenAddress, tokenId } = useParams();
   const [popup, setPopup] = useState("");
-  const [dueAmount, setDueAmount] = useState();
+  const [loanAmount, setLoanAmount] = useState();
   const [chainId, setChainId] = useState();
   const [accounts, setAccounts] = useState([]);
+  const [loanState, setLoanState] = useState("");
 
   const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -20,6 +21,7 @@ const Item = () => {
     document.querySelector("#event_popup").classList.add("active");
     setPopup(data);
   };
+
   function closePopup(e) {
     console.log("closePopup");
     if (!e.target.matches("#event_popup_detail")) {
@@ -36,19 +38,47 @@ const Item = () => {
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       setChainId(chainId);
     }
-
+    getLoanAmount()
     axios(
       `${process.env.REACT_APP_SERVER_URL}/assets/${tokenAddress}/${tokenId}`
     ).then(({ data }) => {
       setNftData(data[0]);
+      setLoanState(data[0].state)
+     
     });
   }, [chainId]);
 
-  useEffect(async () => {
-    getDueAmount().then(() => {
-      console.log("due amount: ", dueAmount);
-    });
-  }, []);
+  // const updateDueAmount = async () => {
+  //   if ((window.ethereum) && (chainId === "0x1f91") && (accounts.length > 0)) {
+  //     const signer = provider.getSigner();
+  //     const contract = new ethers.Contract(
+  //       process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+  //       BNPL_ABI,
+  //       signer
+  //     );
+  //     const repayments = await contract.getRepayments(tokenAddress, tokenId);
+
+  //     const loanData = await contract.getLoanData(tokenAddress, tokenId);
+  //     const dueAmount =
+  //       parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
+  //       parseInt(repayments._hex, 16) / 10 ** 18;
+      
+  //       setDueAmount(dueAmount);
+  //       console.log("Due Amount: ", dueAmount)
+
+  //     if ((dueAmount === 0) && (nftData.state !== "LOAN_REPAID") && (accounts.length > 0)) {
+  //       axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+  //         state: "LOAN_REPAID",
+  //         owner: accounts[0],
+  //         tokenId: tokenId,
+  //         contractAddress: tokenAddress,
+  //       });
+
+  //       setLoanState("LOAN_REPAID");
+
+  //     }
+  //   }
+  // };
 
   async function switchChain() {
     try {
@@ -78,7 +108,7 @@ const Item = () => {
     }
   }
 
-  async function getDueAmount() {
+  async function getLoanAmount() {
     if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -86,49 +116,53 @@ const Item = () => {
         BNPL_ABI,
         signer
       );
-      const repayments = await contract.getRepayments(tokenAddress, tokenId);
-
+      
       const loanData = await contract.getLoanData(tokenAddress, tokenId);
-      const dueAmount =
-        parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
-        parseInt(repayments._hex, 16) / 10 ** 18;
-
-      if (dueAmount === 0) {
-        axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-          state: "LOAN_REPAID",
-          owner: accounts[0],
-          tokenId: tokenId,
-          contractAddress: tokenAddress,
-        });
-      }
-
-      setDueAmount(dueAmount)
+      const loanAmount = parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 
+      setLoanAmount(loanAmount)
     }
   }
 
-  async function repay(amount) {
-    if (amount <= 0) {
-      alert("Amount should be greater than 0");
-      return;
-    }
+  async function repayLoan() {
+    // if (amount <= 0) {
+    //   alert("Amount should be greater than 0");
+    //   return;
+    // }
 
-    if (amount > dueAmount) {
-      alert("Amount is greater than Due Amount");
-      return;
-    }
+    // if (amount > dueAmount) {
+    //   alert("Amount is greater than Due Amount");
+    //   return;
+    // }
 
     if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
       const signer = provider.getSigner();
+      const owner = signer.getAddress()
       const contract = new ethers.Contract(
         process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
         BNPL_ABI,
         signer
       );
-      console.log("amount: ", amount);
-      const depositResponse = await contract.repay(tokenAddress, tokenId, {
-        value: ethers.utils.parseEther(amount),
+     
+      const repayResponse = await contract.repay(tokenAddress, tokenId, {
+        value: ethers.utils.parseEther(loanAmount.toString()),
+      }) .then((response) => {
+        if (response.success) {
+          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+            state: "LOAN_REPAID",
+            price: 0,
+            owner: owner,
+            tokenId: tokenId,
+            contractAddress: tokenAddress,
+          });
+        } else {
+          // Handle the case when the cancellation was not successful
+          console.log("Listing cancellation failed:", response.error);
+        }
+      })
+      .catch((error) => {
+        // Handle error if the promise is rejected
+        console.log("Error cancelling listing:", error);
       });
-      console.log("repayResponse: ", depositResponse);
     }
   }
 
@@ -171,27 +205,49 @@ const Item = () => {
       );
 
       if (nftData.state === "Listed") {
-        await contract.cancelListing(tokenAddress, tokenId).then(() => {
-          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-            state: "LISTED_CANCELLED",
-            price: 0,
-            owner: owner,
-            tokenId: tokenId,
-            contractAddress: tokenAddress,
+        await contract
+          .cancelListing(tokenAddress, tokenId)
+          .then((response) => {
+            if (response.success) {
+              axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+                state: "LISTED_CANCELLED",
+                price: 0,
+                owner: owner,
+                tokenId: tokenId,
+                contractAddress: tokenAddress,
+              });
+            } else {
+              // Handle the case when the cancellation was not successful
+              console.log("Listing cancellation failed:", response.error);
+            }
+          })
+          .catch((error) => {
+            // Handle error if the promise is rejected
+            console.log("Error cancelling listing:", error);
           });
-        });
       }
 
       if (nftData.state === "MARGIN_LISTED") {
-        await contract.cancelMarginListing(tokenAddress, tokenId).then(() => {
-          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-            state: "LISTED_CANCELLED",
-            price: 0,
-            owner: owner,
-            tokenId: tokenId,
-            contractAddress: tokenAddress,
+        await contract
+          .cancelMarginListing(tokenAddress, tokenId)
+          .then((response) => {
+            if (response.success) {
+              axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+                state: "LISTED_CANCELLED",
+                price: 0,
+                owner: owner,
+                tokenId: tokenId,
+                contractAddress: tokenAddress,
+              });
+            } else {
+              // Handle the case when the cancellation was not successful
+              console.log("Listing cancellation failed:", response.error);
+            }
+          })
+          .catch((error) => {
+            // Handle error if the promise is rejected
+            console.log("Error cancelling listing:", error);
           });
-        });
       }
     }
   }
@@ -205,16 +261,20 @@ const Item = () => {
         signer
       );
 
-        await contract.claimNFTbyBuyer(tokenAddress, tokenId).then(() => {
+      await contract.claimNFTbyBuyer(tokenAddress, tokenId).then((response) => {
+        if(response.success) {
           axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-            state: "CLAIMED",
-            price: 0,
-            owner: owner,
-            tokenId: tokenId,
-            contractAddress: tokenAddress,
-          });
+          state: "CLAIMED",
+          price: 0,
+          owner: owner,
+          tokenId: tokenId,
+          contractAddress: tokenAddress,
         });
-      
+      }
+        else{
+          console.log("Listing cancellation failed:", response.error);
+        }
+      });
     }
   }
 
@@ -266,8 +326,9 @@ const Item = () => {
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div>Remaining Amount</div>
-                    <div className="text-5xl font-bold">30%</div>
+                    <div>Loan Amount</div>
+                    {console.log("loan Amount: ", loanAmount)}
+                    <div className="text-5xl font-bold">{loanAmount}</div>
                   </div>
                 </div>
               </div>
@@ -276,14 +337,14 @@ const Item = () => {
               {(() => {
                 if (nftData.state === "LISTED") {
                   return (
-                    <button className="primary-btn" onClick={cancelListing()}>
+                    <button className="primary-btn" onClick={cancelListing}>
                       Cancel Listing
                     </button>
                   );
                 } else if (nftData.state === "MARGIN_LISTED") {
                   return (
                     <div>
-                      <button className="primary-btn" onClick={cancelListing()}>
+                      <button className="primary-btn" onClick={cancelListing}>
                         Cancel Listing
                       </button>
                       <button
@@ -301,9 +362,7 @@ const Item = () => {
                     <div>
                       <button
                         className="primary-btn"
-                        onClick={(e) => {
-                          handleClick(e, "Repay");
-                        }}
+                        onClick={repayLoan}
                       >
                         Repay
                       </button>
@@ -319,7 +378,7 @@ const Item = () => {
                   );
                 } else if (nftData.state === "LOAN_REPAID") {
                   return (
-                    <button className="primary-btn" onClick={claimNFT()}>
+                    <button className="primary-btn" onClick={claimNFT}>
                       Claim NFT
                     </button>
                   );
@@ -332,9 +391,11 @@ const Item = () => {
               id="event_popup_detail"
               className="text-white border-2 shadow-lg shadow-cyan-500/50 border-sky-500/70 rounded-md"
             >
-              {popup === "Repay" && (
+              {/* {popup === "Repay" && (
                 <div className="h-full flex flex-col justify-center items-center">
-                  <p className="text-xl mb-5">Due Amount: {dueAmount} SHM</p>
+                  <p className="text-xl mb-5">
+                    <p>Due Amount: {dueAmount} SHM</p>
+                  </p>
                   <input
                     className=" mb-5 text-lg text-black px-5 rounded-xl"
                     type="text"
@@ -343,13 +404,13 @@ const Item = () => {
                   <button
                     className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
                     onClick={() => {
-                      repay(document.getElementById("repayAmount").value);
+                      repayLoan();
                     }}
                   >
                     Repay
                   </button>
                 </div>
-              )}
+              )} */}
               {popup === "Margin_List" && (
                 <div className="h-full flex flex-col justify-center items-center">
                   <div className="text-2xl mb-5">

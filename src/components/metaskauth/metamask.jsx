@@ -38,6 +38,18 @@ const MetaMaskAuthButton = () => {
       if (window.ethereum) {
         // Request MetaMask user's permission to connect
         await window.ethereum.enable();
+
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: "0x1f91",
+                chainName: "Shardeum Sphinx DApp 1.X",
+                rpcUrls: ["https://dapps.shardeum.org/"],
+              },
+            ],
+          });
+       
         // User is now connected to MetaMask
         setIsConnected(true);
 
