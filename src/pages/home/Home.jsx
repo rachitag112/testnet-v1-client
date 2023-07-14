@@ -1,23 +1,23 @@
-import React from 'react'
-import {Footer, Header, PopularCollections, TopCollection } from '../../components'
-import './home.css'
+import React from "react";
+import { Header, PopularCollections, TopCollection } from "../../components";
+import { Footer } from "../../inc";
+import "./home.css";
 
-import Staking from '../../components/staking/Staking'
-import ComingSoon from '../../components/comingSoon/comingSoon'
-import EarlyAccess from '../../components/earlyAccess/EarlyAccess'
+import Staking from "../../components/Home/staking/Staking";
+import ComingSoon from "../../components/Home/comingSoon/comingSoon";
+import EarlyAccess from "../../components/Home/earlyAccess/EarlyAccess";
 const Home = () => {
-  return (
-    <div>
-      <Header/>
-      <TopCollection/>
-      <Staking/>
-      <PopularCollections/>
-      <EarlyAccess/>
-      <ComingSoon/>
-      <Footer />
+	return (
+		<div>
+			<Header />
+			<TopCollection />
+			<Staking />
+			<PopularCollections />
+			<EarlyAccess />
+			<ComingSoon />
+			<Footer />
+		</div>
+	);
+};
 
-    </div>
-  )
-}
-
-export default Home
+export default Home;

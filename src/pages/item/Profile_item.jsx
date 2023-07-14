@@ -7,391 +7,444 @@ import { BNPL_ABI } from "../../assets/constants";
 import { ethers } from "ethers";
 
 const Item = () => {
-  const [nftData, setNftData] = useState([]);
-  const { tokenAddress, tokenId } = useParams();
-  const [popup, setPopup] = useState("");
-  const [loanAmount, setLoanAmount] = useState();
-  const [chainId, setChainId] = useState();
-  const [accounts, setAccounts] = useState([]);
-  const [loanState, setLoanState] = useState("");
+	const [nftData, setNftData] = useState([]);
+	const { tokenAddress, tokenId } = useParams();
+	const [popup, setPopup] = useState("");
+	const [loanAmount, setLoanAmount] = useState();
+	const [chainId, setChainId] = useState();
+	const [accounts, setAccounts] = useState([]);
+	const [loanState, setLoanState] = useState("");
 
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+	const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-  const handleClick = (e, data) => {
-    document.querySelector("#event_popup").classList.add("active");
-    setPopup(data);
-  };
+	const handleClick = (e, data) => {
+		document.querySelector("#event_popup").classList.add("active");
+		setPopup(data);
+	};
 
-  function closePopup(e) {
-    console.log("closePopup");
-    if (!e.target.matches("#event_popup_detail")) {
-      e.target.classList.remove("active");
-    }
-  }
+	function closePopup(e) {
+		console.log("closePopup");
+		if (!e.target.matches("#event_popup_detail")) {
+			e.target.classList.remove("active");
+		}
+	}
 
-  useEffect(async () => {
-    if (window.ethereum) {
-      const accounts = await window.ethereum.request({
-        method: "eth_accounts",
-      });
-      setAccounts(accounts[0]);
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      setChainId(chainId);
-    }
-    getLoanAmount()
-    axios(
-      `${process.env.REACT_APP_SERVER_URL}/assets/${tokenAddress}/${tokenId}`
-    ).then(({ data }) => {
-      setNftData(data[0]);
-      setLoanState(data[0].state)
-     
-    });
-  }, [chainId]);
+	useEffect(async () => {
+		if (window.ethereum) {
+			const accounts = await window.ethereum.request({
+				method: "eth_accounts",
+			});
+			setAccounts(accounts[0]);
+			const chainId = await window.ethereum.request({
+				method: "eth_chainId",
+			});
+			setChainId(chainId);
+		}
+		getLoanAmount();
+		axios(
+			`${process.env.REACT_APP_SERVER_URL}/assets/${tokenAddress}/${tokenId}`
+		).then(({ data }) => {
+			setNftData(data[0]);
+			setLoanState(data[0].state);
+		});
+	}, [chainId]);
 
-  // const updateDueAmount = async () => {
-  //   if ((window.ethereum) && (chainId === "0x1f91") && (accounts.length > 0)) {
-  //     const signer = provider.getSigner();
-  //     const contract = new ethers.Contract(
-  //       process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-  //       BNPL_ABI,
-  //       signer
-  //     );
-  //     const repayments = await contract.getRepayments(tokenAddress, tokenId);
+	// const updateDueAmount = async () => {
+	//   if ((window.ethereum) && (chainId === "0x1f91") && (accounts.length > 0)) {
+	//     const signer = provider.getSigner();
+	//     const contract = new ethers.Contract(
+	//       process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+	//       BNPL_ABI,
+	//       signer
+	//     );
+	//     const repayments = await contract.getRepayments(tokenAddress, tokenId);
 
-  //     const loanData = await contract.getLoanData(tokenAddress, tokenId);
-  //     const dueAmount =
-  //       parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
-  //       parseInt(repayments._hex, 16) / 10 ** 18;
-      
-  //       setDueAmount(dueAmount);
-  //       console.log("Due Amount: ", dueAmount)
+	//     const loanData = await contract.getLoanData(tokenAddress, tokenId);
+	//     const dueAmount =
+	//       parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
+	//       parseInt(repayments._hex, 16) / 10 ** 18;
 
-  //     if ((dueAmount === 0) && (nftData.state !== "LOAN_REPAID") && (accounts.length > 0)) {
-  //       axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-  //         state: "LOAN_REPAID",
-  //         owner: accounts[0],
-  //         tokenId: tokenId,
-  //         contractAddress: tokenAddress,
-  //       });
+	//       setDueAmount(dueAmount);
+	//       console.log("Due Amount: ", dueAmount)
 
-  //       setLoanState("LOAN_REPAID");
+	//     if ((dueAmount === 0) && (nftData.state !== "LOAN_REPAID") && (accounts.length > 0)) {
+	//       axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+	//         state: "LOAN_REPAID",
+	//         owner: accounts[0],
+	//         tokenId: tokenId,
+	//         contractAddress: tokenAddress,
+	//       });
 
-  //     }
-  //   }
-  // };
+	//       setLoanState("LOAN_REPAID");
 
-  async function switchChain() {
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x1f91" }],
-      });
-    } catch (switchError) {
-      // This error code indicates that the chain has not been added to MetaMask.
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: "0x1f91",
-                chainName: "Shardeum Sphinx DApp 1.X",
-                rpcUrls: ["https://dapps.shardeum.org/"],
-              },
-            ],
-          });
-        } catch (addError) {
-          // handle "add" error
-        }
-      }
-      // handle other "switch" errors
-    }
-  }
+	//     }
+	//   }
+	// };
 
-  async function getLoanAmount() {
-    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      );
-      
-      const loanData = await contract.getLoanData(tokenAddress, tokenId);
-      const loanAmount = parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 
-      setLoanAmount(loanAmount)
-    }
-  }
+	async function switchChain() {
+		try {
+			await window.ethereum.request({
+				method: "wallet_switchEthereumChain",
+				params: [{ chainId: "0x1f91" }],
+			});
+		} catch (switchError) {
+			// This error code indicates that the chain has not been added to MetaMask.
+			if (switchError.code === 4902) {
+				try {
+					await window.ethereum.request({
+						method: "wallet_addEthereumChain",
+						params: [
+							{
+								chainId: "0x1f91",
+								chainName: "Shardeum Sphinx DApp 1.X",
+								rpcUrls: ["https://dapps.shardeum.org/"],
+							},
+						],
+					});
+				} catch (addError) {
+					// handle "add" error
+				}
+			}
+			// handle other "switch" errors
+		}
+	}
 
-  async function repayLoan() {
-    // if (amount <= 0) {
-    //   alert("Amount should be greater than 0");
-    //   return;
-    // }
+	async function getLoanAmount() {
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
 
-    // if (amount > dueAmount) {
-    //   alert("Amount is greater than Due Amount");
-    //   return;
-    // }
+			const loanData = await contract.getLoanData(tokenAddress, tokenId);
+			const loanAmount =
+				parseInt(loanData.loanAmount._hex, 16) / 10 ** 18;
+			setLoanAmount(loanAmount);
+		}
+	}
 
-    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-      const signer = provider.getSigner();
-      const owner = signer.getAddress()
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      );
-     
-      const repayResponse = await contract.repay(tokenAddress, tokenId, {
-        value: ethers.utils.parseEther(loanAmount.toString()),
-      }) .then((response) => {
-        if (response.success) {
-          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-            state: "LOAN_REPAID",
-            price: 0,
-            owner: owner,
-            tokenId: tokenId,
-            contractAddress: tokenAddress,
-          });
-        } else {
-          // Handle the case when the cancellation was not successful
-          console.log("Listing cancellation failed:", response.error);
-        }
-      })
-      .catch((error) => {
-        // Handle error if the promise is rejected
-        console.log("Error cancelling listing:", error);
-      });
-    }
-  }
+	async function repayLoan() {
+		// if (amount <= 0) {
+		//   alert("Amount should be greater than 0");
+		//   return;
+		// }
 
-  async function marginList(price) {
-    if (price <= 0) {
-      alert("Listing Price should be greater than 0");
-      return;
-    }
+		// if (amount > dueAmount) {
+		//   alert("Amount is greater than Due Amount");
+		//   return;
+		// }
 
-    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-      const signer = provider.getSigner();
-      const owner = await signer.getAddress();
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      );
-      const _price = ethers.utils.parseEther(price);
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const owner = signer.getAddress();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
 
-      await contract.marginList(tokenAddress, tokenId, _price).then(() => {
-        axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-          state: "MARGIN_LISTED",
-          price: price,
-          owner: owner,
-          tokenId: tokenId,
-          contractAddress: tokenAddress,
-        });
-      });
-    }
-  }
+			const repayResponse = await contract
+				.repay(tokenAddress, tokenId, {
+					value: ethers.utils.parseEther(loanAmount.toString()),
+				})
+				.then((response) => {
+					if (response.success) {
+						axios.patch(
+							`${process.env.REACT_APP_SERVER_URL}/state`,
+							{
+								state: "LOAN_REPAID",
+								price: 0,
+								owner: owner,
+								tokenId: tokenId,
+								contractAddress: tokenAddress,
+							}
+						);
+					} else {
+						// Handle the case when the cancellation was not successful
+						console.log(
+							"Listing cancellation failed:",
+							response.error
+						);
+					}
+				})
+				.catch((error) => {
+					// Handle error if the promise is rejected
+					console.log("Error cancelling listing:", error);
+				});
+		}
+	}
 
-  async function cancelListing() {
-    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-      const signer = provider.getSigner();
-      const owner = await signer.getAddress();
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      );
+	async function marginList(price) {
+		if (price <= 0) {
+			alert("Listing Price should be greater than 0");
+			return;
+		}
 
-      if (nftData.state === "Listed") {
-        await contract
-          .cancelListing(tokenAddress, tokenId)
-          .then((response) => {
-            if (response.success) {
-              axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-                state: "LISTED_CANCELLED",
-                price: 0,
-                owner: owner,
-                tokenId: tokenId,
-                contractAddress: tokenAddress,
-              });
-            } else {
-              // Handle the case when the cancellation was not successful
-              console.log("Listing cancellation failed:", response.error);
-            }
-          })
-          .catch((error) => {
-            // Handle error if the promise is rejected
-            console.log("Error cancelling listing:", error);
-          });
-      }
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const owner = await signer.getAddress();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
+			const _price = ethers.utils.parseEther(price);
 
-      if (nftData.state === "MARGIN_LISTED") {
-        await contract
-          .cancelMarginListing(tokenAddress, tokenId)
-          .then((response) => {
-            if (response.success) {
-              axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-                state: "LISTED_CANCELLED",
-                price: 0,
-                owner: owner,
-                tokenId: tokenId,
-                contractAddress: tokenAddress,
-              });
-            } else {
-              // Handle the case when the cancellation was not successful
-              console.log("Listing cancellation failed:", response.error);
-            }
-          })
-          .catch((error) => {
-            // Handle error if the promise is rejected
-            console.log("Error cancelling listing:", error);
-          });
-      }
-    }
-  }
-  async function claimNFT() {
-    if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-      const signer = provider.getSigner();
-      const owner = await signer.getAddress();
-      const contract = new ethers.Contract(
-        process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-        BNPL_ABI,
-        signer
-      );
+			await contract
+				.marginList(tokenAddress, tokenId, _price)
+				.then(() => {
+					axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+						state: "MARGIN_LISTED",
+						price: price,
+						owner: owner,
+						tokenId: tokenId,
+						contractAddress: tokenAddress,
+					});
+				});
+		}
+	}
 
-      await contract.claimNFTbyBuyer(tokenAddress, tokenId).then((response) => {
-        if(response.success) {
-          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-          state: "CLAIMED",
-          price: 0,
-          owner: owner,
-          tokenId: tokenId,
-          contractAddress: tokenAddress,
-        });
-      }
-        else{
-          console.log("Listing cancellation failed:", response.error);
-        }
-      });
-    }
-  }
+	async function cancelListing() {
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const owner = await signer.getAddress();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
 
-  return (
-    <>
-      {chainId !== "0x1f91" ? (
-        <div className=" text-white h-[100vh] flex flex-col justify-center items-center mx-auto text-3xl">
-          <h>Please Switch to Shardeum Testnet</h>
-          <button
-            className="text-[#0ea5e9] bg-gray-800 border-2 border-gray-900 items-center px-3 py-2 text-lg font-medium text-center  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
-            onClick={switchChain}
-          >
-            Switch Network
-          </button>
-        </div>
-      ) : (
-        <div className="item flex px-6 text-white mb-0">
-          <div className="item-image flex flex-col mt-32 border-r border-gray-200 mb-0">
-            <img
-              src={`https://ipfs.io/ipfs/${
-                nftData.metadata?.imageURI.split("//")[1]
-              }`}
-              alt=""
-              className="rounded-15 w-80 mb-5"
-            />
-            <div className="mx-auto item-content-title">
-              <h1 className="font-bold text-28 ">
-                {nftData.metadata?.name} #{nftData?.tokenId}
-              </h1>
-            </div>
-          </div>
-          <div className="item-content flex justify-start items-center flex-col">
-            <div className=" flex-col mt-4 w-full px-8">
-              <div className="p-4 border border-white border-b-0 py-8">
-                Description:{" "}
-                <span className="font-semibold">
-                  {nftData.metadata?.description}
-                </span>
-              </div>
-              <div className="p-4 border border-white border-b-0 py-8">
-                Owner: <span className="font-semibold">{nftData.owner}</span>
-              </div>
-              <div className="p-4 border border-white text-white">
-                <div className="flex justify-around my-4">
-                  <div className="flex flex-col items-center">
-                    <div>Price</div>
-                    <div className="text-5xl font-bold">
-                      {nftData.price} ETH
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div>Loan Amount</div>
-                    {console.log("loan Amount: ", loanAmount)}
-                    <div className="text-5xl font-bold">{loanAmount}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mx-auto my-8 item-content-buy">
-              {(() => {
-                if (nftData.state === "LISTED") {
-                  return (
-                    <button className="primary-btn" onClick={cancelListing}>
-                      Cancel Listing
-                    </button>
-                  );
-                } else if (nftData.state === "MARGIN_LISTED") {
-                  return (
-                    <div>
-                      <button className="primary-btn" onClick={cancelListing}>
-                        Cancel Listing
-                      </button>
-                      <button
-                        className="primary-btn"
-                        onClick={(e) => {
-                          handleClick(e, "Repay");
-                        }}
-                      >
-                        Repay
-                      </button>
-                    </div>
-                  );
-                } else if (nftData.state === "BNPL_LOAN_ACTIVE") {
-                  return (
-                    <div>
-                      <button
-                        className="primary-btn"
-                        onClick={repayLoan}
-                      >
-                        Repay
-                      </button>
-                      <button
-                        className="primary-btn"
-                        onClick={(e) => {
-                          handleClick(e, "Margin_List");
-                        }}
-                      >
-                        List for Sale
-                      </button>
-                    </div>
-                  );
-                } else if (nftData.state === "LOAN_REPAID") {
-                  return (
-                    <button className="primary-btn" onClick={claimNFT}>
-                      Claim NFT
-                    </button>
-                  );
-                }
-              })()}
-            </div>
-          </div>
-          <div id="event_popup" onClick={closePopup}>
-            <div
-              id="event_popup_detail"
-              className="text-white border-2 shadow-lg shadow-cyan-500/50 border-sky-500/70 rounded-md"
-            >
-              {/* {popup === "Repay" && (
+			if (nftData.state === "Listed") {
+				await contract
+					.cancelListing(tokenAddress, tokenId)
+					.then((response) => {
+						if (response.success) {
+							axios.patch(
+								`${process.env.REACT_APP_SERVER_URL}/state`,
+								{
+									state: "LISTED_CANCELLED",
+									price: 0,
+									owner: owner,
+									tokenId: tokenId,
+									contractAddress: tokenAddress,
+								}
+							);
+						} else {
+							// Handle the case when the cancellation was not successful
+							console.log(
+								"Listing cancellation failed:",
+								response.error
+							);
+						}
+					})
+					.catch((error) => {
+						// Handle error if the promise is rejected
+						console.log("Error cancelling listing:", error);
+					});
+			}
+
+			if (nftData.state === "MARGIN_LISTED") {
+				await contract
+					.cancelMarginListing(tokenAddress, tokenId)
+					.then((response) => {
+						if (response.success) {
+							axios.patch(
+								`${process.env.REACT_APP_SERVER_URL}/state`,
+								{
+									state: "LISTED_CANCELLED",
+									price: 0,
+									owner: owner,
+									tokenId: tokenId,
+									contractAddress: tokenAddress,
+								}
+							);
+						} else {
+							// Handle the case when the cancellation was not successful
+							console.log(
+								"Listing cancellation failed:",
+								response.error
+							);
+						}
+					})
+					.catch((error) => {
+						// Handle error if the promise is rejected
+						console.log("Error cancelling listing:", error);
+					});
+			}
+		}
+	}
+	async function claimNFT() {
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const owner = await signer.getAddress();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
+
+			await contract
+				.claimNFTbyBuyer(tokenAddress, tokenId)
+				.then((response) => {
+					if (response.success) {
+						axios.patch(
+							`${process.env.REACT_APP_SERVER_URL}/state`,
+							{
+								state: "CLAIMED",
+								price: 0,
+								owner: owner,
+								tokenId: tokenId,
+								contractAddress: tokenAddress,
+							}
+						);
+					} else {
+						console.log(
+							"Listing cancellation failed:",
+							response.error
+						);
+					}
+				});
+		}
+	}
+
+	return (
+		<>
+			{chainId !== "0x1f91" ? (
+				<div className=" text-white h-[100vh] flex flex-col justify-center items-center mx-auto text-3xl">
+					<h>Please Switch to Shardeum Testnet</h>
+					<button
+						className="text-[#0ea5e9] bg-gray-800 border-2 border-gray-900 items-center px-3 py-2 text-lg font-medium text-center  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
+						onClick={switchChain}
+					>
+						Switch Network
+					</button>
+				</div>
+			) : (
+				<div className="item flex px-6 text-white mb-0">
+					<div className="item-image flex flex-col mt-32 border-r border-gray-200 mb-0">
+						<img
+							src={`https://ipfs.io/ipfs/${
+								nftData.metadata?.imageURI.split("//")[1]
+							}`}
+							alt=""
+							className="rounded-15 w-80 mb-5"
+						/>
+						<div className="mx-auto item-content-title">
+							<h1 className="font-bold text-28 ">
+								{nftData.metadata?.name} #{nftData?.tokenId}
+							</h1>
+						</div>
+					</div>
+					<div className="item-content flex justify-start items-center flex-col">
+						<div className=" flex-col mt-4 w-full px-8">
+							<div className="p-4 border border-white border-b-0 py-8">
+								Description:{" "}
+								<span className="font-semibold">
+									{nftData.metadata?.description}
+								</span>
+							</div>
+							<div className="p-4 border border-white border-b-0 py-8">
+								Owner:{" "}
+								<span className="font-semibold">
+									{nftData.owner}
+								</span>
+							</div>
+							<div className="p-4 border border-white text-white">
+								<div className="flex justify-around my-4">
+									<div className="flex flex-col items-center">
+										<div>Price</div>
+										<div className="text-5xl font-bold">
+											{nftData.price} ETH
+										</div>
+									</div>
+									<div className="flex flex-col items-center">
+										<div>Loan Amount</div>
+										{console.log(
+											"loan Amount: ",
+											loanAmount
+										)}
+										<div className="text-5xl font-bold">
+											{loanAmount}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div className="mx-auto my-8 item-content-buy">
+							{(() => {
+								if (nftData.state === "LISTED") {
+									return (
+										<button
+											className="primary-btn"
+											onClick={cancelListing}
+										>
+											Cancel Listing
+										</button>
+									);
+								} else if (nftData.state === "MARGIN_LISTED") {
+									return (
+										<div>
+											<button
+												className="primary-btn"
+												onClick={cancelListing}
+											>
+												Cancel Listing
+											</button>
+											<button
+												className="primary-btn"
+												onClick={(e) => {
+													handleClick(e, "Repay");
+												}}
+											>
+												Repay
+											</button>
+										</div>
+									);
+								} else if (
+									nftData.state === "BNPL_LOAN_ACTIVE"
+								) {
+									return (
+										<div>
+											<button
+												className="primary-btn"
+												onClick={repayLoan}
+											>
+												Repay
+											</button>
+											<button
+												className="primary-btn"
+												onClick={(e) => {
+													handleClick(
+														e,
+														"Margin_List"
+													);
+												}}
+											>
+												List for Sale
+											</button>
+										</div>
+									);
+								} else if (nftData.state === "LOAN_REPAID") {
+									return (
+										<button
+											className="primary-btn"
+											onClick={claimNFT}
+										>
+											Claim NFT
+										</button>
+									);
+								}
+							})()}
+						</div>
+					</div>
+					<div id="event_popup" onClick={closePopup}>
+						<div
+							id="event_popup_detail"
+							className="text-white border-2 shadow-lg shadow-cyan-500/50 border-sky-500/70 rounded-md"
+						>
+							{/* {popup === "Repay" && (
                 <div className="h-full flex flex-col justify-center items-center">
                   <p className="text-xl mb-5">
                     <p>Due Amount: {dueAmount} SHM</p>
@@ -411,32 +464,36 @@ const Item = () => {
                   </button>
                 </div>
               )} */}
-              {popup === "Margin_List" && (
-                <div className="h-full flex flex-col justify-center items-center">
-                  <div className="text-2xl mb-5">
-                    Put your NFT's for margin sale
-                  </div>
-                  <input
-                    className=" text-lg text-black mb-5 px-5 rounded-xl"
-                    type="text"
-                    id="marginPrice"
-                  />
-                  <button
-                    className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
-                    onClick={() => {
-                      marginList(document.getElementById("marginPrice").value);
-                    }}
-                  >
-                    List for Sale
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+							{popup === "Margin_List" && (
+								<div className="h-full flex flex-col justify-center items-center">
+									<div className="text-2xl mb-5">
+										Put your NFT's for margin sale
+									</div>
+									<input
+										className=" text-lg text-black mb-5 px-5 rounded-xl"
+										type="text"
+										id="marginPrice"
+									/>
+									<button
+										className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
+										onClick={() => {
+											marginList(
+												document.getElementById(
+													"marginPrice"
+												).value
+											);
+										}}
+									>
+										List for Sale
+									</button>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			)}
+		</>
+	);
 };
 
 export default Item;
