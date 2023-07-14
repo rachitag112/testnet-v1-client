@@ -24,9 +24,10 @@ export default function PopularCollections() {
 			</h1>
 
 			<div className="flex justify-evenly mt-10 ">
-				{data.slice(2, 6).map((coll) => {
+				{data.slice(2, 6).map((coll, ixd) => {
 					return (
 						<div
+							key={ixd}
 							className="flex m-4 h-72 card items-end cursor-pointer w-1/4"
 							style={{ backgroundImage: `url(${coll.img})` }}
 							onClick={() => handleRedirect(coll.address)}

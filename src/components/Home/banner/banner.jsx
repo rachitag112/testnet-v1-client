@@ -12,9 +12,9 @@ export default function Banner2() {
 	};
 	return (
 		<div className="text-white mt-40 w-full">
-			<div className="flex justify-center">
+			<div className="flex justify-center gap-4">
 				<div className="flex flex-col w-1/2 justify-center items-start">
-					<div className="text-5xl font-bold text-gradient w-2/3">
+					<div className="text-5xl font-bold text-gradient">
 						Buy Now Pay Later and Margin Trading for NFTs
 					</div>
 					<div className="w-2/3 text-gradient my-4">
