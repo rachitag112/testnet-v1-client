@@ -1,12 +1,18 @@
 {
-	"theme_color": "#2e8cfb",
-	"background_color": "#000",
-	"display": "standalone",
-	"scope": "/",
-	"start_url": "/",
+	"id": "1",
+	"lang": "en",
+	"version": "1.0.0",
 	"name": "GearFi",
 	"short_name": "GearFi",
 	"description": "This Application is build by Digilearning Private LTD, and this is an e-commerce site use to Buy Books and get delivery in short time.",
+	"scope": "/",
+	"start_url": "/",
+	"theme_color": "#2e8cfb",
+	"background_color": "#000",
+	"display": "standalone",
+	"dir": "ltr",
+	"orientation": "any",
+	"display_override": ["standalone", "window-controls-overlay"],
 	"icons": [
 		{
 			"src": "./icons/icon-192x192.png",
@@ -29,14 +35,5 @@
 			"type": "image/png"
 		}
 	],
-	"dir": "ltr",
-	"lang": "en",
-	"orientation": "any",
-	"display_override": ["standalone", "window-controls-overlay"],
-	"protocol_handlers": [
-		{
-			"protocol": "web+gearfi://",
-			"url": "/"
-		}
-	]
+	"shortcut": []
 }
