@@ -11,9 +11,12 @@ export default function Banner2() {
 		navigate(`/collection/${address}`);
 	};
 	return (
-		<div className="text-white mt-40 w-full">
-			<div className="flex justify-center gap-4">
-				<div className="flex flex-col w-1/2 justify-center items-start">
+		<div className="text-white mt-10 w-full px-[20px]">
+			<div className="md:flex justify-center gap-4 ">
+				<div
+					className="flex flex-col md:w-1/2 justify-center items-start px-2 text-center
+				 md:text-left items-center md:items-start mb-10"
+				>
 					<div className="text-5xl font-bold text-gradient">
 						Buy Now Pay Later and Margin Trading for NFTs
 					</div>
@@ -29,9 +32,14 @@ export default function Banner2() {
 						</a>
 					</div>
 				</div>
-				<div className="white-glassmorphism-no-border rounded-none py-4 px-8 align-self-left">
+
+				<div
+					className="white-glassmorphism-no-border max-w-[90%] h-[fit-content] rounded-none py-4 px-4 align-self-left mx-auto
+					sm:max-w-[50%]
+				"
+				>
 					<div
-						className="flex m-4 h-72 card items-end cursor-pointer"
+						className="flex md:h-72 md:m-4 m-0 card items-end cursor-pointer bg-cover bg-center aspect-square pb-4 justify-center"
 						style={{ backgroundImage: `url(${collImg})` }}
 						onClick={() =>
 							handleRedirect(
@@ -39,7 +47,7 @@ export default function Banner2() {
 							)
 						}
 					>
-						<div className="flex flex-col m-4 blue-glassmorphism p-4">
+						<div className="flex flex-col blue-glassmorphism p-4 w-[80%]">
 							<div className="font-bold mb-2 flex items-center justify-between">
 								<div>BAYC</div>
 								<div>

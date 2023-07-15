@@ -10,9 +10,9 @@ export default function PopularCollections() {
 	};
 
 	return (
-		<div className="text-white font-semibold m-20">
+		<div className="text-white font-semibold mb-[100px] mx-auto max-w-[1280px] px-[10px]">
 			<h1
-				className="ml-20 p-4 text-2xl text-center"
+				className="p-4 text-2xl text-center"
 				style={{
 					fontFamily: "Inter, Arial",
 					fontWeight: "500",
@@ -23,12 +23,12 @@ export default function PopularCollections() {
 				Popular Collections
 			</h1>
 
-			<div className="flex justify-evenly mt-10 ">
+			<div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mt-10 ">
 				{data.slice(2, 6).map((coll, ixd) => {
 					return (
 						<div
 							key={ixd}
-							className="flex m-4 h-72 card items-end cursor-pointer w-1/4"
+							className="flex card items-end cursor-pointer rounded-[8px] bg-center bg-cover aspect-square"
 							style={{ backgroundImage: `url(${coll.img})` }}
 							onClick={() => handleRedirect(coll.address)}
 						>

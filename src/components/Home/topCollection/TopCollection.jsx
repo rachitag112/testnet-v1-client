@@ -26,18 +26,18 @@ const UserData = ({ users }) => {
 				return (
 					<tr
 						key={curUser.address}
-						className="hover:bg-gray-600 text-center mt-4"
+						className="hover:bg-gray-600 text-center"
 						onClick={() => handleRedirect(curUser.address)}
 						style={{ cursor: "pointer" }}
 					>
-						<td className="p-2 text-start">
-							<div className="flex items-center">
-								<img
-									src={curUser.img}
-									className="w-16 rounded-full m-4"
-								/>
-								<p className="">{COLLECTION}</p>
-							</div>
+						<td className="p-2 text-start border-separated border-spacing-x-[20px] flex items-center sm:flex-row flex-col">
+							<img
+								src={curUser.img}
+								className="w-16 rounded-full m-4"
+							/>
+							<p className="whitespace-nowrap sm:whitespace-normal sm:break-words">
+								{COLLECTION}
+							</p>
 						</td>
 						<td className="">{FLOOR_PRICE}</td>
 						<td
@@ -77,7 +77,7 @@ const Chart = () => {
 	}, []);
 
 	return (
-		<>
+		<div className=" mb-[100px]  max-w-[1280px] mx-auto px-[10px]">
 			<h1
 				className="p-4 text-2xl text-center"
 				style={{
@@ -90,26 +90,30 @@ const Chart = () => {
 				Top Collections
 			</h1>
 
-			<div className=" flex justify-center mt-10">
-				<table className="text-sm w-[80%]">
-					<thead className=" border-b border-white">
-						<tr>
-							<th className="text-start pl-4">COLLECTION</th>
-							<th className="">FLOOR PRICE</th>
-							<th className="">1D CHANGE</th>
-							<th className="">7D CHANGE</th>
-							<th className="">1D VOLUME</th>
-							<th className="">7D VOLUME</th>
-							<th className="">OWNERS</th>
-							<th className="">SUPPLY</th>
-						</tr>
-					</thead>
-					<tbody>
-						<UserData users={users} />
-					</tbody>
-				</table>
+			<div className="mt-10 px-3">
+				<div className="overflow-auto">
+					<table className="text-sm w-[100%] leading-[30px] whitespace-nowrap ">
+						<thead className="border-b-1 border-white">
+							<tr className="whitespace-nowrap">
+								<th className="pl-4 sm:w-[300px] block">
+									COLLECTION
+								</th>
+								<th className="px-4">FLOOR PRICE</th>
+								<th className="px-4">1D CHANGE</th>
+								<th className="px-4">7D CHANGE</th>
+								<th className="px-4">1D VOLUME</th>
+								<th className="px-4">7D VOLUME</th>
+								<th className="px-4">OWNERS</th>
+								<th className="px-4">SUPPLY</th>
+							</tr>
+						</thead>
+						<tbody>
+							<UserData users={users} />
+						</tbody>
+					</table>
+				</div>
 			</div>
-		</>
+		</div>
 	);
 };
 

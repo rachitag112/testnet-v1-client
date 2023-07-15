@@ -15,9 +15,7 @@ function App() {
 
 	return (
 		<div className="gradient-bg-welcome">
-			<div className="fixed top-0 left-0 right-0 z-10 mb-10">
-				<Navbar className="" />
-			</div>
+			<Navbar className="" />
 			<Routes>
 				<Route path="/" element={<Home />} />
 				{/* <Route path=':item/:id' element={<Item />} /> */}

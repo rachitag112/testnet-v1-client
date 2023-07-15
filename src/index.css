@@ -1,38 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 :root {
-  --font-family: 'Poppins', sans-serif;
+	--font-family: "Poppins", sans-serif;
 
-  --gradient2: linear-gradient(89.97deg, #EB1484 1.84%, #c81cc5 102.67%);
-  --primary-btn: linear-gradient(101.12deg, #EB1484 27.35%, #C91CC3 99.99%, #C81CC5 100%, #C81CC5 100%);
-  
-  --primary-color: #EB1484;
-  --secondary-color: #c81cc5;
+	--gradient2: linear-gradient(89.97deg, #eb1484 1.84%, #c81cc5 102.67%);
+	--primary-btn: linear-gradient(
+		101.12deg,
+		#eb1484 27.35%,
+		#c91cc3 99.99%,
+		#c81cc5 100%,
+		#c81cc5 100%
+	);
 
-  --color-bg: #24252d;
-  --color-card : #2A2D3A;
-  --color-footer : #24252D;
+	--primary-color: #eb1484;
+	--secondary-color: #c81cc5;
+
+	--color-bg: #24252d;
+	--color-card: #2a2d3a;
+	--color-footer: #24252d;
 }
 /* ===== Scrollbar CSS ===== */
-  /* Firefox */
-  * {
-    scrollbar-width: auto;
-    scrollbar-color: #2A2D3A #ffffff;
-  }
+/* Firefox */
+* {
+	scrollbar-width: auto;
+	scrollbar-color: #2a2d3a #ffffff;
+}
 
-  /* Chrome, Edge, and Safari */
-  *::-webkit-scrollbar {
-    width: 14px;
-  }
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+	width: 7px;
+	height: 7px;
+}
 
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
 
-  *::-webkit-scrollbar-thumb {
-    background: var(--color-card);
-    border-radius: 10px;
-    border: 3px none #ffffff;
-  }
+*::-webkit-scrollbar-thumb {
+	background: var(--color-card);
+	border-radius: 4px;
+	border: 3px none #ffffff;
+}
