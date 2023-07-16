@@ -15,7 +15,7 @@ const Navbar = () => {
 		md:flex-row w-[auto] sticky top-0 z-10
 		"
 		>
-			<div className="flex items-center justify-between max-w-[1280px] mx-auto">
+			<div className="md:flex items-center justify-between max-w-[1280px] mx-auto">
 				<div
 					className="flex items-center text-white justify-between w-[100%]
 					md:w-[auto]
@@ -51,8 +51,8 @@ const Navbar = () => {
 
 				<div
 					className={
-						(!openDrawer ? "h-0 " : "") +
-						"flex w-[100%] flex-col text-center gap-1 md:flex-row md:w-[auto] md:h-[100%] overflow-hidden"
+						(!openDrawer ? "max-h-0 " : "max-h-screen ") +
+						"md:max-h-[100%]  h-auto flex w-[100%] flex-col text-center gap-1 md:flex-row md:w-[auto] md:h-[100%] overflow-hidden ease-in-out duration-150 "
 					}
 				>
 					<div
