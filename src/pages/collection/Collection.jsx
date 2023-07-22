@@ -23,7 +23,7 @@ export default function Collection() {
   })
 
   return (
-    <div className='text-white mt-20 h-full'>
+    <div className='text-white pt-20 h-full'>
       <div className='relative'>
         <img
           src={collData.banner_img}

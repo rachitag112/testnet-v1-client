@@ -9,7 +9,8 @@ import { Link } from "react-router-dom";
 
 const Item = () => {
   const [nftData, setNftData] = useState([]);
-  const [currState, setCurrState] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [checkoutSale, setCheckoutSale] = useState(false);
   const { tokenAddress, tokenId } = useParams();
 
   useEffect(() => {
@@ -18,26 +19,26 @@ const Item = () => {
     ).then(({ data }) => {
       console.log("datacollection", data[0]);
       setNftData(data[0]);
-      setCurrState(data[0].state)
     });
   }, [tokenAddress, tokenId]);
 
   async function bnplInitialize() {
-    const accounts = await window.ethereum.request({ method: "eth_accounts" });
-    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
 
-    if (accounts.length === 0) {
-      alert("Please connect Wallet");
-      return;
-    }
-    console.log("chainId: ", chainId);
-    if (chainId !== "0x1f91") {
-      alert("Please switch to Shardeum Testnet");
+      if (accounts.length === 0) {
+        alert("Please connect Wallet");
+        return;
+      }
 
-      return;
-    }
+      if (chainId !== "0x1f91") {
+        alert("Please switch to Shardeum Testnet");
+        return;
+      }
 
-    if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const owner = await signer.getAddress();
@@ -53,10 +54,13 @@ const Item = () => {
         value: ethers.utils.parseEther(price.toString()),
       });
 
+      const txConfirm = await provider.getTransaction(response.hash);
+      if (txConfirm) setLoading(true);
+      console.log("owner: ", owner);
       const confirmedTransaction = await provider.waitForTransaction(
         response.hash,
         1
-      ); 
+      );
 
       if (confirmedTransaction.status === 1) {
         axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
@@ -66,30 +70,34 @@ const Item = () => {
           contractAddress: tokenAddress,
         });
 
-        setCurrState("BNPL_LOAN_ACTIVE");
+        setCheckoutSale(true);
       } else {
-        console.log("Failed...");
+        alert("Transaction Failed!");
       }
-
-    } else alert("Sorry no wallet found");
+      setLoading(false);
+    } catch (error) {
+      alert("Error! Check console for more details.");
+      console.log("Error : ", error);
+    }
   }
 
   async function marginSale() {
-    const accounts = await window.ethereum.request({ method: "eth_accounts" });
-    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
 
-    if (accounts.length === 0) {
-      alert("Please connect Wallet");
-      return;
-    }
-    console.log("chainId: ", chainId);
-    if (chainId !== "0x1f91") {
-      alert("Please switch to Shardeum Testnet");
+      if (accounts.length === 0) {
+        alert("Please connect Wallet");
+        return;
+      }
 
-      return;
-    }
+      if (chainId !== "0x1f91") {
+        alert("Please switch to Shardeum Testnet");
+        return;
+      }
 
-    if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const owner = await signer.getAddress();
@@ -101,30 +109,35 @@ const Item = () => {
 
       const price = (nftData.price * 30) / 100;
 
-      const response = await contract
-        .marginSale(tokenAddress, tokenId, {
-          value: ethers.utils.parseEther(price.toString()),
-        })
-      
-        const confirmedTransaction = await provider.waitForTransaction(
-          response.hash,
-          1
-        ); 
-  
-        if (confirmedTransaction.status === 1) {
-          axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-            state: "BNPL_LOAN_ACTIVE",
-            owner: owner,
-            tokenId: tokenId,
-            contractAddress: tokenAddress,
-          });
-  
-          setCurrState("BNPL_LOAN_ACTIVE");
-        } else {
-          console.log("Failed...");
-        }
+      const response = await contract.marginSale(tokenAddress, tokenId, {
+        value: ethers.utils.parseEther(price.toString()),
+      });
 
-    } else alert("Sorry no wallet found");
+      const txConfirm = await provider.getTransaction(response.hash);
+      if (txConfirm) setLoading(true);
+
+      const confirmedTransaction = await provider.waitForTransaction(
+        response.hash,
+        1
+      );
+
+      if (confirmedTransaction.status === 1) {
+        axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+          state: "BNPL_LOAN_ACTIVE",
+          owner: owner,
+          tokenId: tokenId,
+          contractAddress: tokenAddress,
+        });
+
+        setCheckoutSale(true);
+      } else {
+        alert("Transaction Faild!");
+      }
+      setLoading(false);
+    } catch (error) {
+      alert("Error! Check console for more details.");
+      console.log("Error : ", error);
+    }
   }
 
   return (
@@ -168,32 +181,33 @@ const Item = () => {
           </div>
         </div>
         <div className="mx-auto my-8 item-content-buy mb-4">
-          {(nftData?.state === "LISTED" ||
-            nftData?.state === "MARGIN_LISTED") && (
-            <div>
-              <div className="relative inline-block">
-                <button
-                  className="primary-btn mb-0"
-                  onClick={() => {
-                    nftData?.state === "LISTED" && bnplInitialize();
-                    nftData?.state === "MARGIN_LISTED" && marginSale();
-                  }}
-                >
-                  {" "}
-                  Buy Now Pay Later
-                </button>
-              </div>
-              {/* <button className='primary-btn'>Make Offer</button> */}
-            </div>
-          )}
-
-          {currState === "BNPL_LOAN_ACTIVE" && (
+          {checkoutSale ? (
             <Link
               to={`/user/${window.ethereum.selectedAddress}`}
               state={{ data: window.ethereum.selectedAddress }}
             >
               <button className="primary-btn">Checkout Sale</button>
             </Link>
+          ) : (
+            <div>
+              <div className=" flex items-center">
+                {loading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 py-3"></div>
+                ) : (
+                  <button
+                    className="primary-btn mb-0"
+                    onClick={() => {
+                      nftData?.state === "LISTED" && bnplInitialize();
+                      nftData?.state === "MARGIN_LISTED" && marginSale();
+                    }}
+                    disabled={loading}
+                  >
+                    Buy Now Pay Later
+                  </button>
+                )}
+              </div>
+              {/* <button className='primary-btn'>Make Offer</button> */}
+            </div>
           )}
         </div>
         {/* <LinedChart /> */}

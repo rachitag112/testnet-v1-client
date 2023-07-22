@@ -31,7 +31,7 @@ const Profile = () => {
 
   console.log("datacollection ", nftData);
   return (
-    <div className="text-white mt-20 h-full" id="main">
+    <div className="text-white pt-20 h-full" id="main">
       <div className="flex flex-col items-center">
         <img src={userProfile} alt="" className="w-24 mt-8 rounded-full" />
         <div className=" text-4xl font-bold mb-2">
