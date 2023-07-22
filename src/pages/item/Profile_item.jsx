@@ -16,6 +16,8 @@ const Item = () => {
   const [loanState, setLoanState] = useState("");
   const [dueAmount, setDueAmount] = useState();
   const [loading, setLoading] = useState(false);
+  const loanStates = ["ACTIVE", "BNPL_LOAN_ACTIVE", "LOAN_REPAID", "MARGIN_LISTED", "NFT_CLAIMED"]
+
   const provider = new ethers.providers.Web3Provider(window.ethereum);
 
   const handleClick = (e, data) => {
@@ -68,7 +70,9 @@ const Item = () => {
         parseInt(repayments._hex, 16) / 10 ** 18;
 
       setDueAmount(dueAmount);
-      console.log("Due Amount: ", dueAmount);
+      console.log("loanState:  ", loanData.state);
+      let loanState = loanStates[loanData.state]
+      console.log("Loan state: ", loanState)
     }
   };
   async function switchChain() {
@@ -138,6 +142,8 @@ const Item = () => {
         value: ethers.utils.parseEther(amount),
       });
 
+      const loanData = await contract.getLoanData(tokenAddress, tokenId); 
+
       const txConfirm = await provider.getTransaction(repayResponse.hash);
 
       if (txConfirm) setLoading(true);
@@ -152,6 +158,13 @@ const Item = () => {
       if (confirmedTransaction.status === 1) {
         console.log("transaction completed!");
         updateDueAmount();
+        let loanState = loanStates[loanData.state]
+        axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+          state: loanState,
+          owner: owner,
+          tokenId: tokenId,
+          contractAddress: tokenAddress,
+        });
       }
 
       setLoading(false);
@@ -324,6 +337,7 @@ const Item = () => {
                 </div>
               </div>
             </div>
+
             <div className="mx-auto my-8 item-content-buy">
               {(() => {
                 if (nftData.state === "LISTED") {
@@ -332,7 +346,8 @@ const Item = () => {
                       Cancel Listing
                     </button>
                   );
-                } else if (nftData.state === "MARGIN_LISTED") {
+                } 
+                else if (nftData.state === "MARGIN_LISTED") {
                   return (
                     <div>
                       <button className="primary-btn" onClick={cancelListing}>
@@ -348,7 +363,8 @@ const Item = () => {
                       </button>
                     </div>
                   );
-                } else if (nftData.state === "BNPL_LOAN_ACTIVE") {
+                } 
+                else if (nftData.state === "BNPL_LOAN_ACTIVE") {
                   return (
                     <div>
                       <button
@@ -369,12 +385,25 @@ const Item = () => {
                       </button>
                     </div>
                   );
-                } else if (nftData.state === "LOAN_REPAID") {
+                } 
+                else if (nftData.state === "LOAN_REPAID") {
                   return (
                     <button className="primary-btn" onClick={claimNFT}>
                       Claim NFT
                     </button>
                   );
+                }
+                else if (nftData.state === "LISTED_CANCELLED"){
+                  return (
+                  <button
+                        className="primary-btn"
+                        onClick={(e) => {
+                          handleClick(e, "Margin_List");
+                        }}
+                      >
+                        List for Sale
+                    </button>
+                    );
                 }
               })()}
             </div>
