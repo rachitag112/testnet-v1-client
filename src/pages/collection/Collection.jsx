@@ -44,7 +44,9 @@ export default function Collection() {
 					{collData.COLLECTION}
 				</div>
 
-				<div className="text-lg my-4 w-2/3">{collData.description}</div>
+				<div className="text-lg my-4 w-full">
+					{collData.description}
+				</div>
 
 				<div className="grid sm:grid-cols-4 grid-cols-2 max-w-[720px] mx-auto my-8 gap-[40px] text-center capitalize py-5">
 					<div className="">

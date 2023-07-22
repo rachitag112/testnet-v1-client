@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import MetaMaskAuthButton from "./metaskauth/metamask";
 
-const Navbar = () => {
+const Navbar = (props) => {
 	const [openDrawer, setOpenDrawer] = useState(false);
 
 	const toggleDrawer = () => {
@@ -93,7 +93,7 @@ const Navbar = () => {
 						</a>
 					</div>
 					<div>
-						<MetaMaskAuthButton />
+						<MetaMaskAuthButton wagmiConfig={props.wagmiConfig} />
 					</div>
 				</div>
 			</div>

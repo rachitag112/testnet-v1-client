@@ -1,3 +1,5 @@
+import { Web3Modal } from "@web3modal/react";
+
 import "./App.css";
 import { Home, Profile, Item, Profile_item } from "./pages";
 import { Routes, Route } from "react-router-dom";
@@ -5,8 +7,8 @@ import { Navbar } from "./inc";
 import Collection from "./pages/collection/Collection";
 import Staking from "./pages/staking/StakingPage";
 import { useEffect } from "react";
-// import Discover from './pages/discover/discover'
-function App() {
+
+function App({ wagmiConfig, ethereumClient, projectId }) {
 	useEffect(() => {
 		if ("serviceWorer" in navigator) {
 			navigator.serviceWorer.register("/sw.js");
@@ -15,6 +17,11 @@ function App() {
 
 	return (
 		<div className="gradient-bg-welcome">
+			<Web3Modal
+				themeMode="dark"
+				projectId={projectId}
+				ethereumClient={ethereumClient}
+			/>
 			<Navbar className="" />
 			<Routes>
 				<Route path="/" element={<Home />} />
