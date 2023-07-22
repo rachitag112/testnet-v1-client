@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from "react";
 import { ethers } from "ethers";
 import { BNPL_ABI } from "../../assets/constants";
@@ -28,14 +30,9 @@ export default function StakingPage() {
 	}, []);
 
 	useEffect(() => {
-		getVaultBalance().then((res) => {
-			setVaultBalance(res);
-			setMaxWithdraw(res * 0.5);
-		});
+		updateVaultBalance();
 
-		getUserBalance().then((res) => {
-			setUserBalance(res);
-		});
+		updateUserBalance();
 	});
 
 	async function switchChain() {
@@ -66,7 +63,7 @@ export default function StakingPage() {
 		}
 	}
 
-	async function getVaultBalance() {
+	async function updateVaultBalance() {
 		if (window.ethereum && chainId === "0x1f91") {
 			const signer = provider.getSigner();
 			const contract = new ethers.Contract(
@@ -75,11 +72,14 @@ export default function StakingPage() {
 				signer
 			);
 			const vaultBalance = await contract.getVaultBalance();
-			return parseInt(vaultBalance._hex, 16) / 10 ** 18;
+
+			let res = parseInt(vaultBalance._hex, 16) / 10 ** 18;
+			setVaultBalance(res);
+			setMaxWithdraw(res * 0.7);
 		}
 	}
 
-	async function getUserBalance() {
+	async function updateUserBalance() {
 		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
 			const signer = provider.getSigner();
 			const contract = new ethers.Contract(
@@ -88,43 +88,167 @@ export default function StakingPage() {
 				signer
 			);
 			const userBalance = await contract.getBalance(signer.getAddress());
-			return parseInt(userBalance._hex, 16) / 10 ** 18;
+			setUserBalance(parseInt(userBalance._hex, 16) / 10 ** 18);
 		}
 	}
 
 	async function deposit(amount) {
-		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-			const signer = provider.getSigner();
-			const contract = new ethers.Contract(
-				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-				BNPL_ABI,
-				signer
-			);
-			console.log("amount: ", amount);
-			const depositResponse = await contract.deposit({
-				value: ethers.utils.parseEther(amount),
+		if (amount <= 0) {
+			toast.error("Deposit amount should be greater than 0", {
+				toastId: "actionError",
 			});
-			console.log("Deposit: ", depositResponse);
+			return;
+		}
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			try {
+				const signer = provider.getSigner();
+				const contract = new ethers.Contract(
+					process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+					BNPL_ABI,
+					signer
+				);
+				console.log("amount: ", amount);
+
+				const depositResponse = await contract.deposit({
+					value: ethers.utils.parseEther(amount),
+				});
+
+				const txConfirm = await provider.getTransaction(
+					depositResponse.hash
+				);
+
+				if (txConfirm)
+					toast.loading("Please wait...", {
+						toastId: "depositStake",
+					});
+
+				const confirmedTransaction = await provider.waitForTransaction(
+					depositResponse.hash,
+					1
+				);
+
+				if (confirmedTransaction.status === 1) {
+					toast.update("depositStake", {
+						render: "Deposit Made Successfully!!",
+						type: "success",
+						isLoading: false,
+						closeOnClick: true,
+						autoClose: 3000,
+					});
+					updateUserBalance();
+					updateVaultBalance();
+				} else {
+					toast.update("depositStake", {
+						render: "Unknown Error occur, while processing transaction!!",
+						type: "error",
+						isLoading: false,
+						closeOnClick: true,
+						autoClose: 3000,
+					});
+				}
+
+				// console.log("Deposit: ", depositResponse);
+			} catch (err) {
+				let msg = "Unknown Error occur, while processing transaction!!";
+				console.log(err.code);
+				if (err.code === "ACTION_REJECTED") {
+					msg = "Transaction Rejected By User!!";
+					toast.error(msg);
+
+					return;
+				}
+
+				toast.update("depositStake", {
+					render: msg,
+					type: "error",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
+			}
 		}
 	}
 
 	async function withdraw(amount) {
-		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
-			if (amount > maxWithdraw) {
-				alert("Not enough balance in vault");
-				return;
-			}
-			const signer = provider.getSigner();
-			const contract = new ethers.Contract(
-				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-				BNPL_ABI,
-				signer
-			);
+		if (amount <= 0) {
+			toast.error("Withdraw amount should be greater than 0", {
+				toastId: "actionError",
+			});
+			return;
+		}
 
-			const withdrawResponse = await contract.withdraw(
-				ethers.utils.parseEther(amount)
-			);
-			console.log("withdraw: ", withdrawResponse);
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			try {
+				if (amount > maxWithdraw) {
+					toast.error("Not enough balance in vault");
+					return;
+				}
+
+				const signer = provider.getSigner();
+				const contract = new ethers.Contract(
+					process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+					BNPL_ABI,
+					signer
+				);
+
+				const withdrawResponse = await contract.withdraw(
+					ethers.utils.parseEther(amount)
+				);
+
+				const txConfirm = await provider.getTransaction(
+					withdrawResponse.hash
+				);
+
+				if (txConfirm)
+					toast.loading("Please wait...", {
+						toastId: "withdrawStake",
+					});
+
+				const confirmedTransaction = await provider.waitForTransaction(
+					withdrawResponse.hash,
+					1
+				);
+
+				if (confirmedTransaction.status === 1) {
+					toast.update("withdrawStake", {
+						render: "Amount Withdrawn Successfully!!",
+						type: "success",
+						isLoading: false,
+						closeOnClick: true,
+						autoClose: 3000,
+					});
+					// console.log("withdraw: ", withdrawResponse);
+					updateUserBalance();
+					updateVaultBalance();
+				} else {
+					toast.update("withdrawStake", {
+						render: "Unknown Error occur, while processing transaction!!",
+						type: "error",
+						isLoading: false,
+						closeOnClick: true,
+						autoClose: 3000,
+					});
+				}
+
+				// console.log("Deposit: ", depositResponse);
+			} catch (err) {
+				let msg = "Unknown Error occur, while processing transaction!!";
+
+				if (err.code === "ACTION_REJECTED") {
+					msg = "Transaction Rejected By User!!";
+					toast.error(msg);
+
+					return;
+				}
+
+				toast.update("withdrawStake", {
+					render: msg,
+					type: "error",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
+			}
 		}
 	}
 

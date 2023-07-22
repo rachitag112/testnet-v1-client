@@ -1,4 +1,5 @@
 import { Web3Modal } from "@web3modal/react";
+import { ToastContainer } from "react-toastify";
 
 import "./App.css";
 import { Home, Profile, Item, Profile_item } from "./pages";
@@ -21,6 +22,18 @@ function App({ wagmiConfig, ethereumClient, projectId }) {
 				themeMode="dark"
 				projectId={projectId}
 				ethereumClient={ethereumClient}
+			/>
+			<ToastContainer
+				position="top-right"
+				autoClose={3000}
+				hideProgressBar={false}
+				newestOnTop={false}
+				closeOnClick={true}
+				rtl={false}
+				pauseOnFocusLoss={true}
+				draggable={false}
+				pauseOnHover={false}
+				theme="colored"
 			/>
 			<Navbar className="" />
 			<Routes>

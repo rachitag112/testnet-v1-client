@@ -14,6 +14,15 @@ const Item = () => {
 	const [chainId, setChainId] = useState();
 	const [accounts, setAccounts] = useState([]);
 	const [loanState, setLoanState] = useState("");
+	const [dueAmount, setDueAmount] = useState();
+	const [loading, setLoading] = useState(false);
+	const loanStates = [
+		"ACTIVE",
+		"BNPL_LOAN_ACTIVE",
+		"LOAN_REPAID",
+		"MARGIN_LISTED",
+		"NFT_CLAIMED",
+	];
 
 	const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -49,38 +58,34 @@ const Item = () => {
 		});
 	}, [chainId]);
 
-	// const updateDueAmount = async () => {
-	//   if ((window.ethereum) && (chainId === "0x1f91") && (accounts.length > 0)) {
-	//     const signer = provider.getSigner();
-	//     const contract = new ethers.Contract(
-	//       process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
-	//       BNPL_ABI,
-	//       signer
-	//     );
-	//     const repayments = await contract.getRepayments(tokenAddress, tokenId);
+	useEffect(async () => {
+		updateDueAmount();
+	});
 
-	//     const loanData = await contract.getLoanData(tokenAddress, tokenId);
-	//     const dueAmount =
-	//       parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
-	//       parseInt(repayments._hex, 16) / 10 ** 18;
+	const updateDueAmount = async () => {
+		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
+			const signer = provider.getSigner();
+			const contract = new ethers.Contract(
+				process.env.REACT_APP_BNPL_CONTRACT_ADDRESS,
+				BNPL_ABI,
+				signer
+			);
+			const repayments = await contract.getRepayments(
+				tokenAddress,
+				tokenId
+			);
 
-	//       setDueAmount(dueAmount);
-	//       console.log("Due Amount: ", dueAmount)
+			const loanData = await contract.getLoanData(tokenAddress, tokenId);
+			const dueAmount =
+				parseInt(loanData.loanAmount._hex, 16) / 10 ** 18 -
+				parseInt(repayments._hex, 16) / 10 ** 18;
 
-	//     if ((dueAmount === 0) && (nftData.state !== "LOAN_REPAID") && (accounts.length > 0)) {
-	//       axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
-	//         state: "LOAN_REPAID",
-	//         owner: accounts[0],
-	//         tokenId: tokenId,
-	//         contractAddress: tokenAddress,
-	//       });
-
-	//       setLoanState("LOAN_REPAID");
-
-	//     }
-	//   }
-	// };
-
+			setDueAmount(dueAmount);
+			console.log("loanState:  ", loanData.state);
+			let loanState = loanStates[loanData.state];
+			console.log("Loan state: ", loanState);
+		}
+	};
 	async function switchChain() {
 		try {
 			await window.ethereum.request({
@@ -125,16 +130,16 @@ const Item = () => {
 		}
 	}
 
-	async function repayLoan() {
-		// if (amount <= 0) {
-		//   alert("Amount should be greater than 0");
-		//   return;
-		// }
+	async function repayLoan(amount) {
+		if (amount <= 0) {
+			alert("Amount should be greater than 0");
+			return;
+		}
 
-		// if (amount > dueAmount) {
-		//   alert("Amount is greater than Due Amount");
-		//   return;
-		// }
+		if (amount > dueAmount) {
+			alert("Amount is greater than Due Amount");
+			return;
+		}
 
 		if (window.ethereum && chainId === "0x1f91" && accounts.length > 0) {
 			const signer = provider.getSigner();
@@ -145,34 +150,40 @@ const Item = () => {
 				signer
 			);
 
-			const repayResponse = await contract
-				.repay(tokenAddress, tokenId, {
-					value: ethers.utils.parseEther(loanAmount.toString()),
-				})
-				.then((response) => {
-					if (response.success) {
-						axios.patch(
-							`${process.env.REACT_APP_SERVER_URL}/state`,
-							{
-								state: "LOAN_REPAID",
-								price: 0,
-								owner: owner,
-								tokenId: tokenId,
-								contractAddress: tokenAddress,
-							}
-						);
-					} else {
-						// Handle the case when the cancellation was not successful
-						console.log(
-							"Listing cancellation failed:",
-							response.error
-						);
-					}
-				})
-				.catch((error) => {
-					// Handle error if the promise is rejected
-					console.log("Error cancelling listing:", error);
+			const repayResponse = await contract.repayLoan(
+				tokenAddress,
+				tokenId,
+				{
+					value: ethers.utils.parseEther(amount),
+				}
+			);
+
+			const loanData = await contract.getLoanData(tokenAddress, tokenId);
+
+			const txConfirm = await provider.getTransaction(repayResponse.hash);
+
+			if (txConfirm) setLoading(true);
+
+			console.log("owner: ", owner);
+
+			const confirmedTransaction = await provider.waitForTransaction(
+				repayResponse.hash,
+				1
+			);
+
+			if (confirmedTransaction.status === 1) {
+				console.log("transaction completed!");
+				updateDueAmount();
+				let loanState = loanStates[loanData.state];
+				axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
+					state: loanState,
+					owner: owner,
+					tokenId: tokenId,
+					contractAddress: tokenAddress,
 				});
+			}
+
+			setLoading(false);
 		}
 	}
 
@@ -361,10 +372,7 @@ const Item = () => {
 									</div>
 									<div className="flex flex-col items-center">
 										<div>Loan Amount</div>
-										{console.log(
-											"loan Amount: ",
-											loanAmount
-										)}
+
 										<div className="text-5xl font-bold">
 											{loanAmount}
 										</div>
@@ -372,6 +380,7 @@ const Item = () => {
 								</div>
 							</div>
 						</div>
+
 						<div className="mx-auto my-8 item-content-buy">
 							{(() => {
 								if (nftData.state === "LISTED") {
@@ -409,7 +418,9 @@ const Item = () => {
 										<div>
 											<button
 												className="primary-btn"
-												onClick={repayLoan}
+												onClick={(e) => {
+													handleClick(e, "Repay");
+												}}
 											>
 												Repay
 											</button>
@@ -435,6 +446,19 @@ const Item = () => {
 											Claim NFT
 										</button>
 									);
+								} else if (
+									nftData.state === "LISTED_CANCELLED"
+								) {
+									return (
+										<button
+											className="primary-btn"
+											onClick={(e) => {
+												handleClick(e, "Margin_List");
+											}}
+										>
+											List for Sale
+										</button>
+									);
 								}
 							})()}
 						</div>
@@ -444,26 +468,37 @@ const Item = () => {
 							id="event_popup_detail"
 							className="text-white border-2 shadow-lg shadow-cyan-500/50 border-sky-500/70 rounded-md"
 						>
-							{/* {popup === "Repay" && (
-                <div className="h-full flex flex-col justify-center items-center">
-                  <p className="text-xl mb-5">
-                    <p>Due Amount: {dueAmount} SHM</p>
-                  </p>
-                  <input
-                    className=" mb-5 text-lg text-black px-5 rounded-xl"
-                    type="text"
-                    id="repayAmount"
-                  />
-                  <button
-                    className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
-                    onClick={() => {
-                      repayLoan();
-                    }}
-                  >
-                    Repay
-                  </button>
-                </div>
-              )} */}
+							{popup === "Repay" && (
+								<div className="h-full flex flex-col justify-center items-center">
+									<p className="text-xl mb-5">
+										<p>Due Amount: {dueAmount} SHM</p>
+									</p>
+									<input
+										className=" mb-5 text-lg text-black px-5 rounded-xl"
+										type="text"
+										id="repayAmount"
+									/>
+									{loading ? (
+										<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 py-3"></div>
+									) : (
+										<button
+											className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
+											onClick={() => {
+												repayLoan(
+													document.getElementById(
+														"repayAmount"
+													).value
+												);
+												document.getElementById(
+													"repayAmount"
+												).value = "";
+											}}
+										>
+											Repay
+										</button>
+									)}
+								</div>
+							)}
 							{popup === "Margin_List" && (
 								<div className="h-full flex flex-col justify-center items-center">
 									<div className="text-2xl mb-5">

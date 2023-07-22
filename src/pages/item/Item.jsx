@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+
 import "./item.css";
 import axios from "axios";
 import LinedChart from "../../inc/lineChart/LinedChart";
@@ -9,7 +11,8 @@ import { Link } from "react-router-dom";
 
 const Item = () => {
 	const [nftData, setNftData] = useState([]);
-	const [currState, setCurrState] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [checkoutSale, setCheckoutSale] = useState(false);
 	const { tokenAddress, tokenId } = useParams();
 
 	useEffect(() => {
@@ -18,30 +21,29 @@ const Item = () => {
 		).then(({ data }) => {
 			console.log("datacollection", data[0]);
 			setNftData(data[0]);
-			setCurrState(data[0].state);
 		});
 	}, [tokenAddress, tokenId]);
 
-	async function bnplInitialize() {
-		const accounts = await window.ethereum.request({
-			method: "eth_accounts",
-		});
-		const chainId = await window.ethereum.request({
-			method: "eth_chainId",
-		});
+	async function bnplInitialize(e) {
+		try {
+			const accounts = await window.ethereum.request({
+				method: "eth_accounts",
+			});
+			const chainId = await window.ethereum.request({
+				method: "eth_chainId",
+			});
 
-		if (accounts.length === 0) {
-			alert("Please connect Wallet");
-			return;
-		}
-		console.log("chainId: ", chainId);
-		if (chainId !== "0x1f91") {
-			alert("Please switch to Shardeum Testnet");
+			if (accounts.length === 0) {
+				toast.error("Wallet not Connected!!");
+				return;
+			}
 
-			return;
-		}
+			if (chainId !== "0x1f91") {
+				toast.error("Please switch to Shardeum Testnet");
+				return;
+			}
 
-		if (window.ethereum) {
+			e.target.disabled = true;
 			const provider = new ethers.providers.Web3Provider(window.ethereum);
 			const signer = provider.getSigner();
 			const owner = await signer.getAddress();
@@ -61,6 +63,11 @@ const Item = () => {
 				}
 			);
 
+			const txConfirm = await provider.getTransaction(response.hash);
+			if (txConfirm) {
+				setLoading(true);
+				toast.loading("Please Wait... ", { toastId: "bnplInitiate" });
+			}
 			const confirmedTransaction = await provider.waitForTransaction(
 				response.hash,
 				1
@@ -74,33 +81,69 @@ const Item = () => {
 					contractAddress: tokenAddress,
 				});
 
-				setCurrState("BNPL_LOAN_ACTIVE");
+				toast.update("bnplInitiate", {
+					render: "NFT purchased Successfully!!",
+					type: "success",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
+
+				setCheckoutSale(true);
 			} else {
-				console.log("Failed...");
+				toast.update("bnplInitiate", {
+					render: "Unknown Error occur, while processing transaction!!",
+					type: "error",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
 			}
-		} else alert("Sorry no wallet found");
+			setLoading(false);
+			e.target.disabled = false;
+		} catch (err) {
+			let msg = "Unknown Error occur, while processing transaction!!";
+			console.log(err.code);
+			e.target.disabled = false;
+
+			if (err.code === "ACTION_REJECTED") {
+				msg = "Transaction Rejected By User!";
+				toast.error(msg);
+
+				return;
+			}
+
+			toast.update("bnplInitiate", {
+				render: msg,
+				type: "error",
+				isLoading: false,
+				closeOnClick: true,
+				autoClose: 3000,
+			});
+			console.log("Error : ", err);
+		}
 	}
 
-	async function marginSale() {
-		const accounts = await window.ethereum.request({
-			method: "eth_accounts",
-		});
-		const chainId = await window.ethereum.request({
-			method: "eth_chainId",
-		});
+	async function marginSale(e) {
+		try {
+			const accounts = await window.ethereum.request({
+				method: "eth_accounts",
+			});
+			const chainId = await window.ethereum.request({
+				method: "eth_chainId",
+			});
 
-		if (accounts.length === 0) {
-			alert("Please connect Wallet");
-			return;
-		}
-		console.log("chainId: ", chainId);
-		if (chainId !== "0x1f91") {
-			alert("Please switch to Shardeum Testnet");
+			if (accounts.length === 0) {
+				toast.error("Wallet not Connected!!");
+				return;
+			}
 
-			return;
-		}
+			if (chainId !== "0x1f91") {
+				toast.error("Please switch to Shardeum Testnet");
+				return;
+			}
 
-		if (window.ethereum) {
+			e.target.disabled = true;
 			const provider = new ethers.providers.Web3Provider(window.ethereum);
 			const signer = provider.getSigner();
 			const owner = await signer.getAddress();
@@ -116,6 +159,11 @@ const Item = () => {
 				value: ethers.utils.parseEther(price.toString()),
 			});
 
+			const txConfirm = await provider.getTransaction(response.hash);
+			if (txConfirm) {
+				setLoading(true);
+				toast.loading("Please Wait... ", { toastId: "bnplInitiate" });
+			}
 			const confirmedTransaction = await provider.waitForTransaction(
 				response.hash,
 				1
@@ -129,11 +177,47 @@ const Item = () => {
 					contractAddress: tokenAddress,
 				});
 
-				setCurrState("BNPL_LOAN_ACTIVE");
+				toast.update("bnplInitiate", {
+					render: "NFT purchased Successfully!!",
+					type: "success",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
+
+				setCheckoutSale(true);
 			} else {
-				console.log("Failed...");
+				toast.update("bnplInitiate", {
+					render: "Unknown Error occur, while processing transaction!!",
+					type: "error",
+					isLoading: false,
+					closeOnClick: true,
+					autoClose: 3000,
+				});
 			}
-		} else alert("Sorry no wallet found");
+			setLoading(false);
+			e.target.disabled = false;
+		} catch (err) {
+			let msg = "Unknown Error occur, while processing transaction!!";
+			console.log(err.code);
+			e.target.disabled = false;
+
+			if (err.code === "ACTION_REJECTED") {
+				msg = "Transaction Rejected By User!";
+				toast.error(msg);
+
+				return;
+			}
+
+			toast.update("bnplInitiate", {
+				render: msg,
+				type: "error",
+				isLoading: false,
+				closeOnClick: true,
+				autoClose: 3000,
+			});
+			console.log("Error : ", err);
+		}
 	}
 
 	return (
@@ -180,28 +264,7 @@ const Item = () => {
 					</div>
 				</div>
 				<div className="mx-auto my-8 item-content-buy mb-4">
-					{(nftData?.state === "LISTED" ||
-						nftData?.state === "MARGIN_LISTED") && (
-						<div>
-							<div className="relative inline-block">
-								<button
-									className="primary-btn mb-0"
-									onClick={() => {
-										nftData?.state === "LISTED" &&
-											bnplInitialize();
-										nftData?.state === "MARGIN_LISTED" &&
-											marginSale();
-									}}
-								>
-									{" "}
-									Buy Now Pay Later
-								</button>
-							</div>
-							{/* <button className='primary-btn'>Make Offer</button> */}
-						</div>
-					)}
-
-					{currState === "BNPL_LOAN_ACTIVE" && (
+					{checkoutSale ? (
 						<Link
 							to={`/user/${window.ethereum.selectedAddress}`}
 							state={{ data: window.ethereum.selectedAddress }}
@@ -210,6 +273,24 @@ const Item = () => {
 								Checkout Sale
 							</button>
 						</Link>
+					) : (
+						<div>
+							<div className=" flex items-center">
+								<button
+									className="primary-btn mb-0"
+									onClick={(e) => {
+										nftData?.state === "LISTED" &&
+											bnplInitialize(e);
+										nftData?.state === "MARGIN_LISTED" &&
+											marginSale(e);
+									}}
+									// disabled={loading}
+								>
+									Buy Now Pay Later
+								</button>
+							</div>
+							{/* <button className='primary-btn'>Make Offer</button> */}
+						</div>
 					)}
 				</div>
 				{/* <LinedChart /> */}

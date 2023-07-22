@@ -8,7 +8,7 @@ import ComingSoon from "../../components/Home/comingSoon/comingSoon";
 import EarlyAccess from "../../components/Home/earlyAccess/EarlyAccess";
 const Home = () => {
 	return (
-		<div>
+		<div id="home_page">
 			<Header />
 			<TopCollection />
 			<Staking />
