@@ -103,6 +103,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
+import {BiSolidUser} from "react-icons/bi";
 
 import { Web3Button } from "@web3modal/react";
 import { useAccount } from "wagmi";
@@ -112,14 +113,14 @@ const userImage = require("../../../assets/user.jpg");
 
 const MetaMaskAuthButton = () => {
 	const { address, isConnected } = useAccount();
-	console.log(useAccount());
+	console.log(useAccount())
 	const sliceIt = (address) => {
 		return `${address.slice(0, 4)}...${address.slice(-4)}`;
 	};
 
 	return (
-		<div className="metamask-auth-wrapper z-2">
-			{isConnected ? (
+		<div className="metamask-auth-wrapper z-2 flex items-center">
+			{/* {isConnected ? (
 				<div className="relative">
 					<Link to={`/user/${address}`}>
 						<div className="flex flex-row cursor:pointer items-center">
@@ -135,9 +136,16 @@ const MetaMaskAuthButton = () => {
 						</div>
 					</Link>
 				</div>
-			) : (
+			) : ( */}
 				<Web3Button className="mt-[5px]" />
-			)}
+				{isConnected &&
+					<Link to={`/user/${address}`} className="w-[40px] rounded-[50%] border-[1px] border-[#b7b7b7] ml-3">
+						<div className="relative leading-[40px] aspect-square flex items-center justify-center">
+							<BiSolidUser className="h-[28px] w-[28px] text-[#3396ff] mx-auto" />
+						</div>
+					</Link>
+				}
+			{/* )} */}
 		</div>
 	);
 };

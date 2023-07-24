@@ -17,7 +17,7 @@ function App({ wagmiConfig, ethereumClient, projectId }) {
 	}, []);
 
 	return (
-		<div className="gradient-bg-welcome">
+		<div className="gradient-bg-welcome min-h-[100vh]">
 			<Web3Modal
 				themeMode="dark"
 				projectId={projectId}

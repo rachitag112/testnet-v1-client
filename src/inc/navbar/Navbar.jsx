@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 import MetaMaskAuthButton from "./metaskauth/metamask";
@@ -52,7 +52,7 @@ const Navbar = (props) => {
 				<div
 					className={
 						(!openDrawer ? "max-h-0 " : "max-h-screen ") +
-						"md:max-h-[100%]  h-auto flex w-[100%] flex-col text-center gap-1 md:flex-row md:w-[auto] md:h-[100%] overflow-hidden ease-in-out duration-150 "
+						" justify-between !w-[66%] md:max-h-[100%]  h-auto flex flex-col text-center gap-1 md:flex-row md:w-[auto] md:h-[100%] overflow-hidden ease-in-out duration-150 "
 					}
 				>
 					<div
@@ -92,9 +92,9 @@ const Navbar = (props) => {
 							</li>
 						</a>
 					</div>
-					<div>
-						<MetaMaskAuthButton wagmiConfig={props.wagmiConfig} />
-					</div>
+					
+					<MetaMaskAuthButton wagmiConfig={props.wagmiConfig} />
+						
 				</div>
 			</div>
 		</div>

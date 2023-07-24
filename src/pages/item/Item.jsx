@@ -11,7 +11,6 @@ import { Link } from "react-router-dom";
 
 const Item = () => {
 	const [nftData, setNftData] = useState([]);
-	const [loading, setLoading] = useState(false);
 	const [checkoutSale, setCheckoutSale] = useState(false);
 	const { tokenAddress, tokenId } = useParams();
 
@@ -65,7 +64,7 @@ const Item = () => {
 
 			const txConfirm = await provider.getTransaction(response.hash);
 			if (txConfirm) {
-				setLoading(true);
+				
 				toast.loading("Please Wait... ", { toastId: "bnplInitiate" });
 			}
 			const confirmedTransaction = await provider.waitForTransaction(
@@ -99,7 +98,7 @@ const Item = () => {
 					autoClose: 3000,
 				});
 			}
-			setLoading(false);
+			
 			e.target.disabled = false;
 		} catch (err) {
 			let msg = "Unknown Error occur, while processing transaction!!";
@@ -161,7 +160,7 @@ const Item = () => {
 
 			const txConfirm = await provider.getTransaction(response.hash);
 			if (txConfirm) {
-				setLoading(true);
+				
 				toast.loading("Please Wait... ", { toastId: "bnplInitiate" });
 			}
 			const confirmedTransaction = await provider.waitForTransaction(
@@ -195,7 +194,7 @@ const Item = () => {
 					autoClose: 3000,
 				});
 			}
-			setLoading(false);
+			
 			e.target.disabled = false;
 		} catch (err) {
 			let msg = "Unknown Error occur, while processing transaction!!";
@@ -222,7 +221,7 @@ const Item = () => {
 
 	return (
 		<div className="item flex px-6 text-white h-full justify-center items-center">
-			<div className="item-image flex flex-col mt-40 border-r border-gray-200">
+			<div className="item-image flex flex-col border-r border-gray-200">
 				<img
 					src={`https://ipfs.io/ipfs/${
 						nftData.metadata?.imageURI.split("//")[1]
@@ -236,7 +235,7 @@ const Item = () => {
 					</h1>
 				</div>
 			</div>
-			<div className="item-content flex justify-start items-center flex-col m-5 relative">
+			<div className="item-content flex justify-start items-center flex-col m-2 relative">
 				<div className=" flex-col mt-4 w-full px-8">
 					<div className="p-4 border border-white border-b-0 py-8">
 						Description:{" "}
@@ -284,7 +283,7 @@ const Item = () => {
 										nftData?.state === "MARGIN_LISTED" &&
 											marginSale(e);
 									}}
-									// disabled={loading}
+									
 								>
 									Buy Now Pay Later
 								</button>
