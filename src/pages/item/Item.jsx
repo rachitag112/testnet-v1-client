@@ -254,7 +254,7 @@ const Item = () => {
 							<div className="flex flex-col items-center">
 								<div>Price</div>
 								<div className="text-5xl font-bold">
-									{nftData.price} ETH
+									{nftData.price} SHM
 								</div>
 							</div>
 							<div className="flex flex-col items-center">
@@ -287,7 +287,7 @@ const Item = () => {
 									}}
 									
 								>
-									Buy Now for {(nftData.price * 30) / 100}
+									Buy Now for {(nftData.price * 30) / 100} SHM
 								</button>
 							</div>
 							{/* <button className='primary-btn'>Make Offer</button> */}

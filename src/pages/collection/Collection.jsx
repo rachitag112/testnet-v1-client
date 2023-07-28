@@ -113,7 +113,7 @@ export default function Collection() {
 													Price
 												</span>
 												<br />
-												{nft.price} ETH
+												{nft.price} SHM
 											</div>
 											<div className="w-1/2 text-sm">
 												<span className="font-[600] text-[#b7b7b7]">

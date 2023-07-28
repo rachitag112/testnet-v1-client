@@ -786,13 +786,13 @@ const Item = () => {
                   <div className="flex flex-col items-center">
                     <div>Price</div>
                     <div className="text-5xl font-bold">
-                      {nftData.price} ETH
+                      {nftData.price} SHM
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
                     <div>Loan Amount</div>
 
-                    <div className="text-5xl font-bold">{loanAmount}</div>
+                    <div className="text-5xl font-bold">{loanAmount} SHM</div>
                   </div>
                 </div>
               </div>
