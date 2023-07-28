@@ -75,13 +75,14 @@ const Item = () => {
 			if (confirmedTransaction.status === 1) {
 				axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
 					state: "BNPL_LOAN_ACTIVE",
+					price: nftData.price,
 					owner: owner,
 					tokenId: tokenId,
 					contractAddress: tokenAddress,
 				});
 
 				toast.update("bnplInitiate", {
-					render: "NFT purchased Successfully!!",
+					render: "NFT purchased Successfully!",
 					type: "success",
 					isLoading: false,
 					closeOnClick: true,
@@ -91,7 +92,7 @@ const Item = () => {
 				setCheckoutSale(true);
 			} else {
 				toast.update("bnplInitiate", {
-					render: "Unknown Error occur, while processing transaction!!",
+					render: "Unknown Error occur, while processing transaction!",
 					type: "error",
 					isLoading: false,
 					closeOnClick: true,
@@ -133,7 +134,7 @@ const Item = () => {
 			});
 
 			if (accounts.length === 0) {
-				toast.error("Wallet not Connected!!");
+				toast.error("Wallet not Connected!");
 				return;
 			}
 
@@ -154,7 +155,7 @@ const Item = () => {
 
 			const price = (nftData.price * 30) / 100;
 
-			const response = await contract.marginSale(tokenAddress, tokenId, {
+			const response = await contract.marginInitiate(tokenAddress, tokenId, {
 				value: ethers.utils.parseEther(price.toString()),
 			});
 
@@ -171,13 +172,14 @@ const Item = () => {
 			if (confirmedTransaction.status === 1) {
 				axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
 					state: "BNPL_LOAN_ACTIVE",
+					price: nftData.price,
 					owner: owner,
 					tokenId: tokenId,
 					contractAddress: tokenAddress,
 				});
 
 				toast.update("bnplInitiate", {
-					render: "NFT purchased Successfully!!",
+					render: "NFT purchased Successfully!",
 					type: "success",
 					isLoading: false,
 					closeOnClick: true,
@@ -285,7 +287,7 @@ const Item = () => {
 									}}
 									
 								>
-									Buy Now Pay Later
+									Buy Now for {(nftData.price * 30) / 100}
 								</button>
 							</div>
 							{/* <button className='primary-btn'>Make Offer</button> */}

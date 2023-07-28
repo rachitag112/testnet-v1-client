@@ -188,13 +188,14 @@ const Item = () => {
 
           axios.patch(`${process.env.REACT_APP_SERVER_URL}/state`, {
             state: loanState,
+            price: nftData.price,
             owner: owner,
             tokenId: tokenId,
             contractAddress: tokenAddress,
           });
 
           toast.update("repayLoan", {
-            render: "Transaction completed!!",
+            render: "Transaction completed!",
             type: "success",
             isLoading: false,
             closeOnClick: true,
@@ -293,7 +294,7 @@ const Item = () => {
           });
 
           toast.update("marginList", {
-            render: "Trasaction completed!!",
+            render: "NFT Listed Successfully!",
             type: "success",
             isLoading: false,
             closeOnClick: true,
@@ -396,7 +397,7 @@ const Item = () => {
           });
 
           toast.update("ListNFT", {
-            render: "Trasaction completed!!",
+            render: "NFT Listed Successfully!",
             type: "success",
             isLoading: false,
             closeOnClick: true,
@@ -477,7 +478,7 @@ const Item = () => {
             });
 
             toast.update("cancelListing", {
-              render: "Trasaction completed!!",
+              render: "Listing Cancelled Successfully!",
               type: "success",
               isLoading: false,
               closeOnClick: true,
@@ -521,7 +522,7 @@ const Item = () => {
             });
 
             toast.update("cancelListing", {
-              render: "Trasaction completed!!",
+              render: "Listing Cancelled Successfully!",
               type: "success",
               isLoading: false,
               closeOnClick: true,
@@ -538,7 +539,7 @@ const Item = () => {
           }
         }
 
-        e.target.disabled = true;
+        e.target.disabled = false;
       } catch (err) {
         let msg = "Unknown Error occur, while processing transaction!!";
         e.target.disabled = false;
@@ -606,7 +607,7 @@ const Item = () => {
           });
 
           toast.update("claimNFT", {
-            render: "Trasaction completed!!",
+            render: "NFT Transferred into your Wallet!",
             type: "success",
             isLoading: false,
             closeOnClick: true,
@@ -622,7 +623,7 @@ const Item = () => {
           });
         }
 
-        e.target.disabled = true;
+        e.target.disabled = false;
       } catch (err) {
         let msg = "Unknown Error occur, while processing transaction!!";
         e.target.disabled = false;
@@ -826,9 +827,7 @@ const Item = () => {
                     type="tel"
                     id="repayAmount"
                   />
-                  {loading ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700 py-3"></div>
-                  ) : (
+                
                     <button
                       className="text-[#0ea5e9] bg-gray-800 items-center px-3 py-2 text-lg font-medium text-center border-2 border-gray-900  hover:bg-[#0ea5e9] hover:text-gray-800 mb-4"
                       onClick={(e) => {
@@ -841,7 +840,7 @@ const Item = () => {
                     >
                       Repay
                     </button>
-                  )}
+                
                 </div>
               )}
               {popup === "Margin_List" && (
